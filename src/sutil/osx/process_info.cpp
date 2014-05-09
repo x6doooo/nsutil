@@ -114,8 +114,8 @@ sutil_get_argmax()
 }
 
 // return process args as a python list
-std::vector<std::string>
-sutil_get_arg_list(const int32_t &pid)
+int
+sutil_get_arg_list(const int32_t &pid, std::vector<std::string> &arg_list)
 {
     int mib[3];
     int nargs;
@@ -125,12 +125,10 @@ sutil_get_arg_list(const int32_t &pid)
     char *arg_end;
     char *curr_arg;
     size_t argmax;
-    std::string arg;
-    std::vector<std::string> arglist;
 
     // special case for PID 0 (kernel_task) where cmdline cannot be fetched
     if (pid == 0) {
-        return arglist;
+        return 0;
     }
 
     // read argmax and allocate memory for argument space.
@@ -175,7 +173,7 @@ sutil_get_arg_list(const int32_t &pid)
     if (arg_ptr == arg_end) {
         free(procargs);
         //return Py_BuildValue("[]");
-        return arglist;
+        return -1;
     }
 
     // skip ahead to the first argument
@@ -193,10 +191,9 @@ sutil_get_arg_list(const int32_t &pid)
     while (arg_ptr < arg_end && nargs > 0) {
         if (*arg_ptr++ == '\0') {
             //arg = Py_BuildValue("s", curr_arg);
-            arg = curr_arg;
             //if (!arg)
             //    goto error;
-            arglist.push_back(arg);
+            arg_list.push_back(curr_arg);
             //if (PyList_Append(arglist, arg))
             //    goto error;
             //Py_DECREF(arg);
@@ -207,14 +204,14 @@ sutil_get_arg_list(const int32_t &pid)
     }
 
     free(procargs);
-    return arglist;
+    return 0;
 
 error:
     //Py_XDECREF(arg);
     //Py_XDECREF(arglist);
     if (procargs != NULL)
         free(procargs);
-    return arglist;;
+    return -1;
 
 }
 
