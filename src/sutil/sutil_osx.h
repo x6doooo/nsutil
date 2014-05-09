@@ -36,6 +36,7 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <algorithm>
 #include "osx/process_info.h"
 
 #ifndef _SUTIL_OSX_H_
@@ -58,6 +59,31 @@ struct proc_open_file {
     int fd;
 };
 
+static int SUTIL_CONN_NONE = 128;
+
+struct proc_conn {
+    int fd = -1;
+    int family = -1;
+    int type = -1;
+    // family => 1: AF_UNIX 
+    std::string addr = "";
+    std::string caddr = "";
+    int conn_none = SUTIL_CONN_NONE;
+    // family => 2 || 10 : AF_INET || AF_INET6
+    std::string laddr_ip = "";
+    int laddr_port = -1;
+    std::string raddr_ip = "";
+    int raddr_port = -1;
+    int state = -1;
+};
+
+struct sutil_user_info {
+    std::string username;
+    std::string tty;
+    std::string host;
+    float start_time;
+};
+
 int sutil_pids(std::vector<int32_t> &pids);
 std::string sutil_proc_name(const int32_t &pid);
 std::string sutil_proc_cwd(const int32_t &pid);
@@ -75,6 +101,11 @@ uint32_t sutil_proc_num_threads(const int32_t &pid);
 uint32_t sutil_proc_num_ctx_switches(const int32_t &pid);
 int sutil_proc_status(const int32_t &pid);
 int sutil_proc_threads(const int32_t &pid, std::vector<std::vector<float>> &threads);
+int sutil_proc_connections(const int32_t &pid,
+        const std::vector<int> &af_filter,
+        const std::vector<int> &type_filter,
+        std::vector<proc_conn> &proc_conn_list);
+int sutil_proc_num_fds(const int32_t &pid);
 
 int sutil_cpu_count_logical(void);
 int sutil_cpu_count_phys(void);
@@ -85,6 +116,9 @@ int sutil_per_cpu_times(std::vector<std::vector<double>> &per_cpu_times);
 float sutil_boot_time(void);
 int sutil_disk_partitions(std::vector<std::vector<std::string>> &disk_partitions);
 int sutil_proc_open_files(const int32_t &pid, std::vector<proc_open_file> &proc_open_files);
+int sutil_net_io_counters(std::vector<std::vector<uint64_t>> &net_io_counters);
+int sutil_disk_io_counters(std::map<std::string, std::vector<uint64_t>> &disk_io_counters);
+int sutil_users(std::vector<sutil_user_info> &user_list);
 /*
 
 */

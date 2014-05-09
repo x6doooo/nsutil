@@ -908,6 +908,7 @@ error:
     return -1;
 }
 
+/*
 int conn_tmap(const string &key, vector<int> &family, vector<int> &types) {
     switch(key) {
         case "all":
@@ -949,19 +950,10 @@ int conn_tmap(const string &key, vector<int> &family, vector<int> &types) {
     return 0;
 
 }
+*/
 
 
 // a signaler for connections without an actual status
-static int SUTIL_CONN_NONE = 128;
-
-struct proc_conn {
-    int fd;
-    int family;
-    int type;
-    string addr;
-    string caddr;
-    int conn_none = SUTIL_CONN_NONE;
-};
 
 /*
  * Return process TCP and UDP connections as a list of tuples.
@@ -969,9 +961,11 @@ struct proc_conn {
  * - lsof source code: http://goo.gl/SYW79 and http://goo.gl/wNrC0
  * - /usr/include/sys/proc_info.h
  */
-/*
 int
-psutil_proc_connections(const int32_t &pid, vector<proc_conn> proc_conn_list)
+sutil_proc_connections(const int32_t &pid,
+        const vector<int> &af_filter,
+        const vector<int> &type_filter,
+        vector<proc_conn> &proc_conn_list)
 {
     int pidinfo_result;
     int iterations;
@@ -982,25 +976,10 @@ psutil_proc_connections(const int32_t &pid, vector<proc_conn> proc_conn_list)
     struct proc_fdinfo *fdp_pointer;
     struct socket_fdinfo si;
 
-    PyObject *laddr = NULL;
-    PyObject *raddr = NULL;
-    PyObject *af_filter = NULL;
-    PyObject *type_filter = NULL;
-
-    if (retList == NULL)
-        return NULL;
-
-    if (! PyArg_ParseTuple(args, "lOO", &pid, &af_filter, &type_filter)) {
-        goto error;
-    }
-
-    if (!PySequence_Check(af_filter) || !PySequence_Check(type_filter)) {
-        PyErr_SetString(PyExc_TypeError, "arg 2 or 3 is not a sequence");
-        goto error;
-    }
+    struct proc_conn *pcn = nullptr;
 
     if (pid == 0) {
-        return retList;
+        return 0;
     }
 
     pidinfo_result = proc_pidinfo(pid, PROC_PIDLISTFDS, 0, NULL, 0);
@@ -1008,9 +987,9 @@ psutil_proc_connections(const int32_t &pid, vector<proc_conn> proc_conn_list)
         goto error;
     }
 
-    fds_pointer = malloc(pidinfo_result);
+    fds_pointer = (struct proc_fdinfo*)malloc(pidinfo_result);
     if (fds_pointer == NULL) {
-        PyErr_NoMemory();
+        cout << "Error: no memory" << endl;
         goto error;
     }
     pidinfo_result = proc_pidinfo(pid, PROC_PIDLISTFDS, 0, fds_pointer,
@@ -1023,9 +1002,7 @@ psutil_proc_connections(const int32_t &pid, vector<proc_conn> proc_conn_list)
     iterations = (pidinfo_result / PROC_PIDLISTFD_SIZE);
 
     for (i = 0; i < iterations; i++) {
-        tuple = NULL;
-        laddr = NULL;
-        raddr = NULL;
+        pcn = new proc_conn;
         errno = 0;
         fdp_pointer = &fds_pointer[i];
 
@@ -1041,19 +1018,15 @@ psutil_proc_connections(const int32_t &pid, vector<proc_conn> proc_conn_list)
                     continue;
                 }
                 if (errno != 0) {
-                    PyErr_SetFromErrno(PyExc_OSError);
+                    cout << "os error" << endl;
                 }
                 else {
-                    PyErr_Format(
-                        PyExc_RuntimeError,
-                        "proc_pidinfo(PROC_PIDFDVNODEPATHINFO) failed");
+                    cout << "RuntimeError: proc_pidinfo(PROC_PIDFDVNODEPATHINFO) failed" << endl;
                 }
                 goto error;
             }
             if (nb < sizeof(si)) {
-                PyErr_Format(PyExc_RuntimeError,
-                             "proc_pidinfo(PROC_PIDFDVNODEPATHINFO) failed "
-                             "(buffer mismatch)");
+                cout << "RuntimeError: proc_pidinfo(PROC_PIDFDVNODEPATHINFO) failed (buffer mismatch)" << endl;
                 goto error;
             }
             // --- /errors checking
@@ -1062,29 +1035,23 @@ psutil_proc_connections(const int32_t &pid, vector<proc_conn> proc_conn_list)
             int fd, family, type, lport, rport, state;
             char lip[200], rip[200];
             int inseq;
-            PyObject *_family;
-            PyObject *_type;
 
             fd = (int)fdp_pointer->proc_fd;
             family = si.psi.soi_family;
             type = si.psi.soi_type;
 
-            // apply filters
-            _family = PyLong_FromLong((long)family);
-            inseq = PySequence_Contains(af_filter, _family);
-            Py_DECREF(_family);
+            inseq = find(af_filter.begin(), af_filter.end(), family) != af_filter.end(); 
+
             if (inseq == 0) {
                 continue;
             }
-            _type = PyLong_FromLong((long)type);
-            inseq = PySequence_Contains(type_filter, _type);
-            Py_DECREF(_type);
+            inseq = find(type_filter.begin(), type_filter.end(), type) != type_filter.end(); 
             if (inseq == 0) {
                 continue;
             }
 
             if (errno != 0) {
-                PyErr_SetFromErrno(PyExc_OSError);
+                cout << "os error" << endl;
                 goto error;
             }
 
@@ -1114,7 +1081,7 @@ psutil_proc_connections(const int32_t &pid, vector<proc_conn> proc_conn_list)
 
                 // check for inet_ntop failures
                 if (errno != 0) {
-                    PyErr_SetFromErrno(PyExc_OSError);
+                    cout << "os error" << endl;
                     goto error;
                 }
 
@@ -1124,70 +1091,360 @@ psutil_proc_connections(const int32_t &pid, vector<proc_conn> proc_conn_list)
                     state = (int)si.psi.soi_proto.pri_tcp.tcpsi_state;
                 }
                 else {
-                    state = PSUTIL_CONN_NONE;
+                    state = SUTIL_CONN_NONE;
                 }
 
-                laddr = Py_BuildValue("(si)", lip, lport);
-                if (!laddr)
-                    goto error;
+                pcn->fd = fd;
+                pcn->family = family;
+                pcn->type = type;
+                pcn->laddr_ip = lip;
+                pcn->laddr_port = lport;
                 if (rport != 0) {
-                    raddr = Py_BuildValue("(si)", rip, rport);
+                    pcn->raddr_ip = rip;
+                    pcn->raddr_port = rport;
                 }
-                else {
-                    raddr = Py_BuildValue("()");
-                }
-                if (!raddr)
-                    goto error;
-
-                // construct the python list
-                tuple = Py_BuildValue("(iiiNNi)", fd, family, type, laddr,
-                                      raddr, state);
-                if (!tuple)
-                    goto error;
-                if (PyList_Append(retList, tuple))
-                    goto error;
-                Py_DECREF(tuple);
+                pcn->state = state;
+                proc_conn_list.push_back(*pcn);
             }
             else if (family == AF_UNIX) {
                 // construct the python list
-                tuple = Py_BuildValue(
-                    "(iiissi)",
-                    fd, family, type,
-                    si.psi.soi_proto.pri_un.unsi_addr.ua_sun.sun_path,
-                    si.psi.soi_proto.pri_un.unsi_caddr.ua_sun.sun_path,
-                    PSUTIL_CONN_NONE);
-                if (!tuple)
-                    goto error;
-                if (PyList_Append(retList, tuple))
-                    goto error;
-                Py_DECREF(tuple);
+                pcn->fd = fd;
+                pcn->family = family;
+                pcn->type = type;
+                pcn->addr = si.psi.soi_proto.pri_un.unsi_addr.ua_sun.sun_path;
+                pcn->caddr = si.psi.soi_proto.pri_un.unsi_caddr.ua_sun.sun_path;
+                proc_conn_list.push_back(*pcn);
             }
         }
+        delete pcn;
+        pcn = nullptr;
     }
 
     free(fds_pointer);
-    return retList;
+    return 0;
 
 error:
-    Py_XDECREF(tuple);
-    Py_XDECREF(laddr);
-    Py_XDECREF(raddr);
-    Py_DECREF(retList);
 
     if (fds_pointer != NULL) {
         free(fds_pointer);
     }
-    if (errno != 0) {
-        return PyErr_SetFromErrno(PyExc_OSError);
+    if (pcn != nullptr) {
+        delete pcn;
+        pcn = nullptr;
     }
-    else if (! psutil_pid_exists(pid) ) {
-        return NoSuchProcess();
+    if (errno != 0) {
+        cout << "os error" << endl;
+    }
+    else if (! sutil_pid_exists(pid) ) {
+        NoSuchProcess();
     }
     else {
-        return PyErr_Format(PyExc_RuntimeError,
-                            "proc_pidinfo(PROC_PIDLISTFDS) failed");
+        cout << "RuntimeError: proc_pidinfo(PROC_PIDLISTFDS) failed" << endl;
     }
+    return -1;
 }
-*/
+
+
+
+/*
+ * Return number of file descriptors opened by process.
+ */
+int
+sutil_proc_num_fds(const int32_t &pid)
+{
+    int pidinfo_result;
+    int num;
+    struct proc_fdinfo *fds_pointer;
+
+    pidinfo_result = proc_pidinfo(pid, PROC_PIDLISTFDS, 0, NULL, 0);
+    if (pidinfo_result <= 0) {
+        cout << "os error" << endl;
+        return -1;
+    }
+
+    fds_pointer = (struct proc_fdinfo*)malloc(pidinfo_result);
+    if (fds_pointer == NULL) {
+        cout << "error: no memory" << endl;
+        return -1;
+    }
+    pidinfo_result = proc_pidinfo(pid, PROC_PIDLISTFDS, 0, fds_pointer,
+                                  pidinfo_result);
+    if (pidinfo_result <= 0) {
+        free(fds_pointer);
+        cout << "os error" << endl;
+        return -1;
+    }
+
+    num = (pidinfo_result / PROC_PIDLISTFD_SIZE);
+    free(fds_pointer);
+    return num;
+}
+
+
+/*
+ * Return overall network I/O information
+ */
+int
+sutil_net_io_counters(vector<vector<uint64_t>> &net_io_counters)
+{
+    char *buf = NULL, *lim, *next;
+    struct if_msghdr *ifm;
+    int mib[6];
+    size_t len;
+
+    vector<uint64_t> nic_info(7);
+
+    mib[0] = CTL_NET;          // networking subsystem
+    mib[1] = PF_ROUTE;         // type of information
+    mib[2] = 0;                // protocol (IPPROTO_xxx)
+    mib[3] = 0;                // address family
+    mib[4] = NET_RT_IFLIST2;   // operation
+    mib[5] = 0;
+
+    if (sysctl(mib, 6, NULL, &len, NULL, 0) < 0) {
+        cout << "os error" << endl;
+        goto error;
+    }
+
+    buf = (char*)malloc(len);
+    if (buf == NULL) {
+        cout << "Error: no memory" << endl;
+        goto error;
+    }
+
+    if (sysctl(mib, 6, buf, &len, NULL, 0) < 0) {
+        cout << "os error" << endl;
+        goto error;
+    }
+
+    lim = buf + len;
+
+    for (next = buf; next < lim; ) {
+        ifm = (struct if_msghdr *)next;
+        next += ifm->ifm_msglen;
+        if (ifm->ifm_type == RTM_IFINFO2) {
+            nic_info.clear();
+            struct if_msghdr2 *if2m = (struct if_msghdr2 *)ifm;
+            struct sockaddr_dl *sdl = (struct sockaddr_dl *)(if2m + 1);
+            char ifc_name[32];
+
+            strncpy(ifc_name, sdl->sdl_data, sdl->sdl_nlen);
+            ifc_name[sdl->sdl_nlen] = 0;
+
+            nic_info.push_back(if2m->ifm_data.ifi_obytes);
+            nic_info.push_back(if2m->ifm_data.ifi_ibytes);
+            nic_info.push_back(if2m->ifm_data.ifi_opackets);
+            nic_info.push_back(if2m->ifm_data.ifi_ipackets);
+            nic_info.push_back(if2m->ifm_data.ifi_ierrors);
+            nic_info.push_back(if2m->ifm_data.ifi_oerrors);
+            nic_info.push_back(if2m->ifm_data.ifi_iqdrops);
+            net_io_counters.push_back(nic_info);
+        }
+    }
+
+    free(buf);
+    return 0;
+
+error:
+    if (buf != NULL)
+        free(buf);
+    return -1;
+}
+
+
+/*
+ * Return a Python dict of tuples for disk I/O information
+ */
+int
+sutil_disk_io_counters(map<string, vector<uint64_t>> &disk_io_counters)
+{
+    CFDictionaryRef parent_dict;
+    CFDictionaryRef props_dict;
+    CFDictionaryRef stats_dict;
+    io_registry_entry_t parent;
+    io_registry_entry_t disk;
+    io_iterator_t disk_list;
+    
+    //PyObject *py_retdict = PyDict_New();
+    //PyObject *py_disk_info = NULL;
+    vector<uint64_t> disk_info(6);
+
+    // Get list of disks
+    if (IOServiceGetMatchingServices(kIOMasterPortDefault,
+                                     IOServiceMatching(kIOMediaClass),
+                                     &disk_list) != kIOReturnSuccess) {
+        cout << "RuntimeError: unable to get the list of disks." << endl;
+        goto error;
+    }
+
+    // Iterate over disks
+    while ((disk = IOIteratorNext(disk_list)) != 0) {
+        disk_info.clear();
+        parent_dict = NULL;
+        props_dict = NULL;
+        stats_dict = NULL;
+
+        if (IORegistryEntryGetParentEntry(disk, kIOServicePlane, &parent)
+                != kIOReturnSuccess) {
+            cout << "RuntimeError: unable to get the disk's parent." << endl;
+            IOObjectRelease(disk);
+            goto error;
+        }
+
+        if (IOObjectConformsTo(parent, "IOBlockStorageDriver")) {
+            if (IORegistryEntryCreateCFProperties(
+                    disk,
+                    (CFMutableDictionaryRef *) &parent_dict,
+                    kCFAllocatorDefault,
+                    kNilOptions
+                ) != kIOReturnSuccess)
+            {
+                cout << "RuntimeError: unable to get the parent's properties." << endl;
+                IOObjectRelease(disk);
+                IOObjectRelease(parent);
+                goto error;
+            }
+
+            if (IORegistryEntryCreateCFProperties(
+                    parent,
+                    (CFMutableDictionaryRef *) &props_dict,
+                    kCFAllocatorDefault,
+                    kNilOptions
+                ) != kIOReturnSuccess)
+            {
+                cout << "RuntimeError: unable to get the disk properties." << endl;
+                CFRelease(props_dict);
+                IOObjectRelease(disk);
+                IOObjectRelease(parent);
+                goto error;
+            }
+
+            const int kMaxDiskNameSize = 64;
+            CFStringRef disk_name_ref = (CFStringRef)CFDictionaryGetValue(
+                parent_dict, CFSTR(kIOBSDNameKey));
+            char disk_name[kMaxDiskNameSize];
+
+            CFStringGetCString(disk_name_ref,
+                               disk_name,
+                               kMaxDiskNameSize,
+                               CFStringGetSystemEncoding());
+
+            stats_dict = (CFDictionaryRef)CFDictionaryGetValue(
+                props_dict, CFSTR(kIOBlockStorageDriverStatisticsKey));
+
+            if (stats_dict == NULL) {
+                cout << "RuntimeError: Unable to get disk stats." << endl;
+                goto error;
+            }
+
+            CFNumberRef number;
+            int64_t reads = 0;
+            int64_t writes = 0;
+            int64_t read_bytes = 0;
+            int64_t write_bytes = 0;
+            int64_t read_time = 0;
+            int64_t write_time = 0;
+
+            // Get disk reads/writes
+            if ((number = (CFNumberRef)CFDictionaryGetValue(
+                    stats_dict,
+                    CFSTR(kIOBlockStorageDriverStatisticsReadsKey))))
+            {
+                CFNumberGetValue(number, kCFNumberSInt64Type, &reads);
+            }
+            if ((number = (CFNumberRef)CFDictionaryGetValue(
+                    stats_dict,
+                    CFSTR(kIOBlockStorageDriverStatisticsWritesKey))))
+            {
+                CFNumberGetValue(number, kCFNumberSInt64Type, &writes);
+            }
+
+            // Get disk bytes read/written
+            if ((number = (CFNumberRef)CFDictionaryGetValue(
+                    stats_dict,
+                    CFSTR(kIOBlockStorageDriverStatisticsBytesReadKey))))
+            {
+                CFNumberGetValue(number, kCFNumberSInt64Type, &read_bytes);
+            }
+            if ((number = (CFNumberRef)CFDictionaryGetValue(
+                    stats_dict,
+                    CFSTR(kIOBlockStorageDriverStatisticsBytesWrittenKey))))
+            {
+                CFNumberGetValue(number, kCFNumberSInt64Type, &write_bytes);
+            }
+
+            // Get disk time spent reading/writing (nanoseconds)
+            if ((number = (CFNumberRef)CFDictionaryGetValue(
+                    stats_dict,
+                    CFSTR(kIOBlockStorageDriverStatisticsTotalReadTimeKey))))
+            {
+                CFNumberGetValue(number, kCFNumberSInt64Type, &read_time);
+            }
+            if ((number = (CFNumberRef)CFDictionaryGetValue(
+                    stats_dict,
+                    CFSTR(kIOBlockStorageDriverStatisticsTotalWriteTimeKey))))
+            {
+                CFNumberGetValue(number, kCFNumberSInt64Type, &write_time);
+            }
+
+            // Read/Write time on OS X comes back in nanoseconds and in psutil
+            // we've standardized on milliseconds so do the conversion.
+            disk_info.push_back(reads);
+            disk_info.push_back(writes);
+            disk_info.push_back(read_bytes);
+            disk_info.push_back(write_bytes);
+            disk_info.push_back(read_time / 1000 / 1000);
+            disk_info.push_back(write_time / 1000 / 1000);
+
+            disk_io_counters[disk_name] = disk_info;
+            /*
+            if (!py_disk_info)
+                goto error;
+            if (PyDict_SetItemString(py_retdict, disk_name, py_disk_info))
+                goto error;
+            Py_DECREF(py_disk_info);
+            */
+            CFRelease(parent_dict);
+            IOObjectRelease(parent);
+            CFRelease(props_dict);
+            IOObjectRelease(disk);
+        }
+    }
+
+    IOObjectRelease (disk_list);
+
+    return 0;
+
+error:
+    return -1;
+}
+
+
+/*
+ * Return currently connected users as a list of tuples.
+ */
+
+int
+sutil_users(vector<sutil_user_info> &user_list)
+{
+    struct utmpx *utx;
+    sutil_user_info a_user;
+
+    while ((utx = getutxent()) != NULL) {
+        if (utx->ut_type != USER_PROCESS)
+            continue;
+        a_user.username = utx->ut_user;
+        a_user.tty = utx->ut_line;
+        a_user.host = utx->ut_host;
+        a_user.start_time = utx->ut_tv.tv_sec;
+        user_list.push_back(a_user);
+    }
+
+    endutxent();
+    return 0;
+
+error:
+    return -1;
+}
 
 
