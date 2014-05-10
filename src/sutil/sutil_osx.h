@@ -1,3 +1,6 @@
+#ifndef _SUTIL_OSX_H_
+#define _SUTIL_OSX_H_
+
 #include <assert.h>
 #include <limits.h>  // for INT_MAX
 #include <signal.h>
@@ -38,9 +41,6 @@
 #include <map>
 #include <algorithm>
 #include "osx/process_info.h"
-
-#ifndef _SUTIL_OSX_H_
-#define _SUTIL_OSX_H_
 
 struct proc_mem_map_grouped {
     std::string pmmap_ext;
@@ -90,13 +90,13 @@ std::string sutil_proc_cwd(const int32_t &pid);
 std::string sutil_proc_exe(const int32_t &pid);
 int sutil_proc_cmdline(const int32_t &pid, std::vector<std::string> &proc_cmdline);
 int32_t sutil_proc_ppid(const int32_t &pid);
-int sutil_proc_uids(const int32_t &pid, int32_t (&uids)[3]);
-int sutil_proc_gids(const int32_t &pid, int32_t (&group_ids)[3]);
+int sutil_proc_uids(const int32_t &pid, int32_t *&uids);
+int sutil_proc_gids(const int32_t &pid, int32_t *&group_ids);
 int sutil_proc_tty_nr(const int32_t &pid);
 int sutil_proc_memory_maps(const int32_t &pid, std::vector<proc_mem_map_grouped> &proc_mem_maps);
-int sutil_proc_cpu_times(const int32_t &pid, double (&t)[2]);
+int sutil_proc_cpu_times(const int32_t &pid, double *&t);
 int32_t sutil_proc_create_time(const int32_t &pid);
-int sutil_proc_memory_info(const int32_t &pid, uint64_t (&proc_mem)[4]);
+int sutil_proc_memory_info(const int32_t &pid, uint64_t *&proc_mem);
 uint32_t sutil_proc_num_threads(const int32_t &pid);
 uint32_t sutil_proc_num_ctx_switches(const int32_t &pid);
 int sutil_proc_status(const int32_t &pid);
@@ -109,9 +109,9 @@ int sutil_proc_num_fds(const int32_t &pid);
 
 int sutil_cpu_count_logical(void);
 int sutil_cpu_count_phys(void);
-int sutil_virtual_mem(uint64_t (&vir_mem)[5]);
-int sutil_swap_mem(uint64_t (&swap_mem)[5]);
-int sutil_cpu_times(double (&cpu_times)[4]);
+int sutil_virtual_mem(uint64_t *&vir_mem);
+int sutil_swap_mem(uint64_t *&swap_mem);
+int sutil_cpu_times(double *&cpu_times);
 int sutil_per_cpu_times(std::vector<std::vector<double>> &per_cpu_times);
 float sutil_boot_time(void);
 int sutil_disk_partitions(std::vector<std::vector<std::string>> &disk_partitions);

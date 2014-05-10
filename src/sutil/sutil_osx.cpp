@@ -138,7 +138,7 @@ sutil_proc_ppid(const int32_t &pid)
  * Return process real uid from kinfo_proc as a integer.
  */
 int
-sutil_proc_uids(const int32_t &pid, int32_t (&uids)[3])
+sutil_proc_uids(const int32_t &pid, int32_t *&uids)
 {
     struct kinfo_proc kp;
     if (sutil_get_kinfo_proc(pid, &kp) == -1) {
@@ -153,15 +153,15 @@ sutil_proc_uids(const int32_t &pid, int32_t (&uids)[3])
 /*
  * Return process real group id from ki_comm as a integer.
  */
-int sutil_proc_gids(const int32_t &pid, int32_t (&group_ids)[3])
+int sutil_proc_gids(const int32_t &pid, int32_t *&group_ids)
 {
     struct kinfo_proc kp;
     if (sutil_get_kinfo_proc(pid, &kp) == -1) {
         return -1;
     }
     group_ids[0] = (long)kp.kp_eproc.e_pcred.p_rgid;
-    group_ids[0] = (long)kp.kp_eproc.e_ucred.cr_groups[0];
-    group_ids[0] = (long)kp.kp_eproc.e_pcred.p_svgid;
+    group_ids[1] = (long)kp.kp_eproc.e_ucred.cr_groups[0];
+    group_ids[2] = (long)kp.kp_eproc.e_pcred.p_svgid;
     return 0;
 }
 
@@ -321,15 +321,15 @@ error:
 /*
  * Return {user_time, kernel_time} (unit: ms)
  */
-int sutil_proc_cpu_times(const int32_t &pid, double (&t)[2])
+int sutil_proc_cpu_times(const int32_t &pid, double *&t)
 {
     struct proc_taskinfo pti;
     if (! sutil_proc_pidinfo(pid, PROC_PIDTASKINFO, &pti, sizeof(pti))) {
         return -1;
     }
     
-    t[0] = (double)pti.pti_total_user / 1000000.0;
-    t[1] = (double)pti.pti_total_system / 1000000.0;
+    t[0] = (double)pti.pti_total_user / 1000000000.0;
+    t[1] = (double)pti.pti_total_system / 1000000000.0;
     return 0;
 }
 
@@ -350,7 +350,7 @@ int32_t sutil_proc_create_time(const int32_t &pid)
 /*
  * Return extended memory info about a process.
  */
-int sutil_proc_memory_info(const int32_t &pid, uint64_t (&proc_mem)[4])
+int sutil_proc_memory_info(const int32_t &pid, uint64_t *&proc_mem)
 {
     struct proc_taskinfo pti;
     if (! sutil_proc_pidinfo(pid, PROC_PIDTASKINFO, &pti, sizeof(pti))) {
@@ -413,7 +413,7 @@ int sutil_proc_status(const int32_t &pid)
  */
 int sutil_proc_threads(const int32_t &pid, vector<vector<float>> &threads)
 {
-    int err, j, ret;
+    int err, ret;
     kern_return_t kr;
     unsigned int info_count = TASK_BASIC_INFO_COUNT;
     mach_port_t task = MACH_PORT_NULL;
@@ -457,7 +457,8 @@ int sutil_proc_threads(const int32_t &pid, vector<vector<float>> &threads)
         cout << "RuntimeError: task_threads() failed" << endl;
         goto error;
     }
-
+    
+    uint16_t j;
     for (j = 0; j < thread_count; j++) {
         thr.clear();
         thread_info_count = THREAD_INFO_MAX;
@@ -593,6 +594,39 @@ error:
     return -1;
 }
 
+/*
+ * Return number of file descriptors opened by process.
+ */
+int
+sutil_proc_num_fds(const int32_t &pid)
+{
+    int pidinfo_result;
+    int num;
+    struct proc_fdinfo *fds_pointer;
+
+    pidinfo_result = proc_pidinfo(pid, PROC_PIDLISTFDS, 0, NULL, 0);
+    if (pidinfo_result <= 0) {
+        cout << "os error" << endl;
+        return -1;
+    }
+
+    fds_pointer = (struct proc_fdinfo*)malloc(pidinfo_result);
+    if (fds_pointer == NULL) {
+        cout << "error: no memory" << endl;
+        return -1;
+    }
+    pidinfo_result = proc_pidinfo(pid, PROC_PIDLISTFDS, 0, fds_pointer,
+                                  pidinfo_result);
+    if (pidinfo_result <= 0) {
+        free(fds_pointer);
+        cout << "os error" << endl;
+        return -1;
+    }
+
+    num = (pidinfo_result / PROC_PIDLISTFD_SIZE);
+    free(fds_pointer);
+    return num;
+}
 
 //XXX//////////////////// system ///////////////////////XXX
 
@@ -634,7 +668,7 @@ int sutil_cpu_count_phys(void)
 /*
  * Return system virtual memory stats
  */
-int sutil_virtual_mem(uint64_t (&vir_mem)[5])
+int sutil_virtual_mem(uint64_t *&vir_mem)
 {
 
     int      mib[2];
@@ -669,7 +703,7 @@ int sutil_virtual_mem(uint64_t (&vir_mem)[5])
 /*
  * Return stats about swap memory.
  */
-int sutil_swap_mem(uint64_t (&swap_mem)[5])
+int sutil_swap_mem(uint64_t *&swap_mem)
 {
     int mib[2];
     size_t size;
@@ -703,7 +737,7 @@ int sutil_swap_mem(uint64_t (&swap_mem)[5])
 /*
  * Return user, kernel and idle CPU times (unit: s)
  */
-int sutil_cpu_times(double (&cpu_times)[4])
+int sutil_cpu_times(double *&cpu_times)
 {
     mach_msg_type_number_t count = HOST_CPU_LOAD_INFO_COUNT;
     kern_return_t error;
@@ -1147,41 +1181,6 @@ error:
 
 
 /*
- * Return number of file descriptors opened by process.
- */
-int
-sutil_proc_num_fds(const int32_t &pid)
-{
-    int pidinfo_result;
-    int num;
-    struct proc_fdinfo *fds_pointer;
-
-    pidinfo_result = proc_pidinfo(pid, PROC_PIDLISTFDS, 0, NULL, 0);
-    if (pidinfo_result <= 0) {
-        cout << "os error" << endl;
-        return -1;
-    }
-
-    fds_pointer = (struct proc_fdinfo*)malloc(pidinfo_result);
-    if (fds_pointer == NULL) {
-        cout << "error: no memory" << endl;
-        return -1;
-    }
-    pidinfo_result = proc_pidinfo(pid, PROC_PIDLISTFDS, 0, fds_pointer,
-                                  pidinfo_result);
-    if (pidinfo_result <= 0) {
-        free(fds_pointer);
-        cout << "os error" << endl;
-        return -1;
-    }
-
-    num = (pidinfo_result / PROC_PIDLISTFD_SIZE);
-    free(fds_pointer);
-    return num;
-}
-
-
-/*
  * Return overall network I/O information
  */
 int
@@ -1442,9 +1441,6 @@ sutil_users(vector<sutil_user_info> &user_list)
 
     endutxent();
     return 0;
-
-error:
-    return -1;
 }
 
 
