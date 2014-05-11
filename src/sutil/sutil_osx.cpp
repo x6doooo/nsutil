@@ -15,7 +15,9 @@ sutil_sys_vminfo(vm_statistics_data_t *vmstat)
 
     ret = host_statistics(mport, HOST_VM_INFO, (host_info_t)vmstat, &count);
     if (ret != KERN_SUCCESS) {
-        cout << "RuntimeError: host_statistics() failed: " + string(mach_error_string(ret)) << endl;
+        string err_desc = "RuntimeError: host_statistics() failed: ";
+        err_desc += mach_error_string(ret);
+        sutil_set_err(err_desc);
         return 0;
     }
     mach_port_deallocate(mach_task_self(), mport);
@@ -35,7 +37,7 @@ sutil_pids(vector<int32_t> &pids)
     size_t idx;
 
     if (sutil_get_proc_list(&proclist, &num_processes) != 0) {
-        cout << "RuntimeError: failed to retrieve process list." << endl;
+        sutil_set_err("RuntimeError: failed to retrieve process list.");
         goto error;
     }
 
@@ -447,14 +449,14 @@ int sutil_proc_threads(const int32_t &pid, vector<vector<float>> &threads)
         }
         else {
             // otherwise throw a runtime error with appropriate error code
-            cout << "RuntimeError: task_info(TASK_BASIC_INFO) failed" << endl;
+            sutil_set_err("RuntimeError: task_info(TASK_BASIC_INFO) failed");
         }
         goto error;
     }
 
     err = task_threads(task, &thread_list, &thread_count);
     if (err != KERN_SUCCESS) {
-        cout << "RuntimeError: task_threads() failed" << endl;
+        sutil_set_err("RuntimeError: task_threads() failed");
         goto error;
     }
     
@@ -465,7 +467,7 @@ int sutil_proc_threads(const int32_t &pid, vector<vector<float>> &threads)
         kr = thread_info(thread_list[j], THREAD_BASIC_INFO,
                          (thread_info_t)thinfo_basic, &thread_info_count);
         if (kr != KERN_SUCCESS) {
-            cout << "RuntimeError: thread_info() with flag THREAD_BASIC_INFO failed" << endl;
+            sutil_set_err("RuntimeError: thread_info() with flag THREAD_BASIC_INFO failed");
             goto error;
         }
 
@@ -479,7 +481,7 @@ int sutil_proc_threads(const int32_t &pid, vector<vector<float>> &threads)
     ret = vm_deallocate(task, (vm_address_t)thread_list,
                         thread_count * sizeof(int));
     if (ret != KERN_SUCCESS) {
-        cout << "RuntimeWarning: vm_deallocate() failed" << endl;
+        sutil_set_err("RuntimeWarning: vm_deallocate() failed");
     }
 
     mach_port_deallocate(mach_task_self(), task);
@@ -493,7 +495,7 @@ error:
         ret = vm_deallocate(task, (vm_address_t)thread_list,
                             thread_count * sizeof(int));
         if (ret != KERN_SUCCESS) {
-            cout << "RuntimeWarning: vm_deallocate() failed" << endl;
+            sutil_set_err("RuntimeWarning: vm_deallocate() failed");
         }
     }
     return -1;
@@ -522,20 +524,20 @@ sutil_proc_open_files(const int32_t &pid, vector<proc_open_file> &proc_open_file
     pidinfo_result = proc_pidinfo(pid, PROC_PIDLISTFDS, 0, NULL, 0);
     if (pidinfo_result <= 0) {
         // may be be ignored later if errno != 0
-        cout << "RuntimeError: proc_pidinfo(PROC_PIDLISTFDS) failed" << endl;
+        sutil_set_err("RuntimeError: proc_pidinfo(PROC_PIDLISTFDS) failed");
         goto error;
     }
 
     fds_pointer = (struct proc_fdinfo*)malloc(pidinfo_result);
     if (fds_pointer == NULL) {
-        cout << "error: no memory" << endl;
+        sutil_set_err("error: no memory");
         goto error;
     }
     pidinfo_result = proc_pidinfo(pid, PROC_PIDLISTFDS, 0, fds_pointer,
                                   pidinfo_result);
     if (pidinfo_result <= 0) {
         // may be be ignored later if errno != 0
-        cout << "RuntimeError: proc_pidinfo(PROC_PIDLISTFDS) failed" << endl;
+        sutil_set_err("RuntimeError: proc_pidinfo(PROC_PIDLISTFDS) failed");
         goto error;
     }
 
@@ -560,11 +562,11 @@ sutil_proc_open_files(const int32_t &pid, vector<proc_open_file> &proc_open_file
                     continue;
                 }
                 // may be be ignored later if errno != 0
-                cout << "RuntimeError: proc_pidinfo(PROC_PIDFDVNODEPATHINFO) failed" << endl;
+                sutil_set_err("RuntimeError: proc_pidinfo(PROC_PIDFDVNODEPATHINFO) failed");
                 goto error;
             }
             if (nb < sizeof(vi)) {
-                cout << "RuntimeError: proc_pidinfo(PROC_PIDFDVNODEPATHINFO) failed (buffer mismatch)" << endl;
+                sutil_set_err("RuntimeError: proc_pidinfo(PROC_PIDFDVNODEPATHINFO) failed (buffer mismatch)");
                 goto error;
             }
             // --- /errors checking
@@ -585,7 +587,7 @@ error:
         free(fds_pointer);
     }
     if (errno != 0) {
-        cout << "os error" << endl;
+        sutil_set_err("os error");
     }
     else if (! sutil_pid_exists(pid)) {
         NoSuchProcess();
@@ -606,20 +608,20 @@ sutil_proc_num_fds(const int32_t &pid)
 
     pidinfo_result = proc_pidinfo(pid, PROC_PIDLISTFDS, 0, NULL, 0);
     if (pidinfo_result <= 0) {
-        cout << "os error" << endl;
+        sutil_set_err("os error");
         return -1;
     }
 
     fds_pointer = (struct proc_fdinfo*)malloc(pidinfo_result);
     if (fds_pointer == NULL) {
-        cout << "error: no memory" << endl;
+        sutil_set_err("error: no memory");
         return -1;
     }
     pidinfo_result = proc_pidinfo(pid, PROC_PIDLISTFDS, 0, fds_pointer,
                                   pidinfo_result);
     if (pidinfo_result <= 0) {
         free(fds_pointer);
-        cout << "os error" << endl;
+        sutil_set_err("os error");
         return -1;
     }
 
@@ -682,9 +684,9 @@ int sutil_virtual_mem(uint64_t *&vir_mem)
     mib[1] = HW_MEMSIZE;
     if (sysctl(mib, 2, &total, &len, NULL, 0)) {
         if (errno != 0)
-            cout << "os error" << endl;
+            sutil_set_err("os error");
         else
-            cout << "RuntimeError: sysctl(HW_MEMSIZE) failed" << endl;
+            sutil_set_err("RuntimeError: sysctl(HW_MEMSIZE) failed");
         return -1;
     }
 
@@ -716,9 +718,9 @@ int sutil_swap_mem(uint64_t *&swap_mem)
     size = sizeof(totals);
     if (sysctl(mib, 2, &totals, &size, NULL, 0) == -1) {
         if (errno != 0)
-            cout << "os error" << endl;
+            sutil_set_err("os error");
         else
-            cout << "RuntimeError: sysctl(VM_SWAPUSAGE) failed" << endl;
+            sutil_set_err("RuntimeError: sysctl(VM_SWAPUSAGE) failed");
         return -1;
     }
     if (!sutil_sys_vminfo(&vmstat)) {
@@ -747,8 +749,7 @@ int sutil_cpu_times(double *&cpu_times)
     error = host_statistics(host_port, HOST_CPU_LOAD_INFO,
                             (host_info_t)&r_load, &count);
     if (error != KERN_SUCCESS) {
-        cout << "RuntimeError: Error in host_statistics(): ";
-        cout << mach_error_string(error) << endl;
+        sutil_set_err("RuntimeError: Error in host_statistics(): " + string(mach_error_string(error)));
         return -1;
     }
     mach_port_deallocate(mach_task_self(), host_port);
@@ -777,8 +778,7 @@ int sutil_per_cpu_times(vector<vector<double>> &per_cpu_times)
     error = host_processor_info(host_port, PROCESSOR_CPU_LOAD_INFO,
                                 &cpu_count, &info_array, &info_count);
     if (error != KERN_SUCCESS) {
-        cout << "RuntimeError: Error in host_processor_info(): ";
-        cout << mach_error_string(error) << endl;
+        sutil_set_err("RuntimeError: Error in host_processor_info(): " + string(mach_error_string(error)));
         goto error;
     }
     mach_port_deallocate(mach_task_self(), host_port);
@@ -798,7 +798,7 @@ int sutil_per_cpu_times(vector<vector<double>> &per_cpu_times)
     ret = vm_deallocate(mach_task_self(), (vm_address_t)info_array,
                         info_count * sizeof(int));
     if (ret != KERN_SUCCESS) {
-        cout << "RuntimeWarning vm_deallocate() failed" << endl;;
+        sutil_set_err("RuntimeWarning vm_deallocate() failed");
     }
     return 0;
 
@@ -807,7 +807,7 @@ error:
         ret = vm_deallocate(mach_task_self(), (vm_address_t)info_array,
                             info_count * sizeof(int));
         if (ret != KERN_SUCCESS) {
-            cout << "RuntimeWarning: vm_deallocate() failed" << endl;
+            sutil_set_err("RuntimeWarning: vm_deallocate() failed");
         }
     }
     return -1;
@@ -827,7 +827,7 @@ float sutil_boot_time(void)
     time_t boot_time = 0;
 
     if (sysctl(request, 2, &result, &result_len, NULL, 0) == -1) {
-        cout << "os error" << endl;
+        sutil_set_err("os error");
         return -1;
     }
     boot_time = result.tv_sec;
@@ -851,20 +851,20 @@ int sutil_disk_partitions(vector<vector<string>> &disk_partitions)
     // get the number of mount points
     num = getfsstat(NULL, 0, MNT_NOWAIT);
     if (num == -1) {
-        cout << "os error" << endl;
+        sutil_set_err("os error");
         goto error;
     }
 
     len = sizeof(*fs) * num;
     fs = (struct statfs*)malloc(len);
     if (fs == NULL) {
-        cout << "error: no memory" << endl;
+        sutil_set_err("error: no memory");
         goto error;
     }
 
     num = getfsstat(fs, len, MNT_NOWAIT);
     if (num == -1) {
-        cout << "os error" << endl;
+        sutil_set_err("os error");
         goto error;
     }
 
@@ -1023,7 +1023,7 @@ sutil_proc_connections(const int32_t &pid,
 
     fds_pointer = (struct proc_fdinfo*)malloc(pidinfo_result);
     if (fds_pointer == NULL) {
-        cout << "Error: no memory" << endl;
+        sutil_set_err("Error: no memory");
         goto error;
     }
     pidinfo_result = proc_pidinfo(pid, PROC_PIDLISTFDS, 0, fds_pointer,
@@ -1052,15 +1052,15 @@ sutil_proc_connections(const int32_t &pid,
                     continue;
                 }
                 if (errno != 0) {
-                    cout << "os error" << endl;
+                    sutil_set_err("os error");
                 }
                 else {
-                    cout << "RuntimeError: proc_pidinfo(PROC_PIDFDVNODEPATHINFO) failed" << endl;
+                    sutil_set_err("RuntimeError: proc_pidinfo(PROC_PIDFDVNODEPATHINFO) failed");
                 }
                 goto error;
             }
             if (nb < sizeof(si)) {
-                cout << "RuntimeError: proc_pidinfo(PROC_PIDFDVNODEPATHINFO) failed (buffer mismatch)" << endl;
+                sutil_set_err("RuntimeError: proc_pidinfo(PROC_PIDFDVNODEPATHINFO) failed (buffer mismatch)");
                 goto error;
             }
             // --- /errors checking
@@ -1085,7 +1085,7 @@ sutil_proc_connections(const int32_t &pid,
             }
 
             if (errno != 0) {
-                cout << "os error" << endl;
+                sutil_set_err("os error");
                 goto error;
             }
 
@@ -1115,7 +1115,7 @@ sutil_proc_connections(const int32_t &pid,
 
                 // check for inet_ntop failures
                 if (errno != 0) {
-                    cout << "os error" << endl;
+                    sutil_set_err("os error");
                     goto error;
                 }
 
@@ -1167,13 +1167,13 @@ error:
         pcn = nullptr;
     }
     if (errno != 0) {
-        cout << "os error" << endl;
+        sutil_set_err("os error");
     }
     else if (! sutil_pid_exists(pid) ) {
         NoSuchProcess();
     }
     else {
-        cout << "RuntimeError: proc_pidinfo(PROC_PIDLISTFDS) failed" << endl;
+        sutil_set_err("RuntimeError: proc_pidinfo(PROC_PIDLISTFDS) failed");
     }
     return -1;
 }
@@ -1184,7 +1184,7 @@ error:
  * Return overall network I/O information
  */
 int
-sutil_net_io_counters(vector<vector<uint64_t>> &net_io_counters)
+sutil_net_io_counters(map<string, vector<uint64_t>> &net_io_counters)
 {
     char *buf = NULL, *lim, *next;
     struct if_msghdr *ifm;
@@ -1201,18 +1201,18 @@ sutil_net_io_counters(vector<vector<uint64_t>> &net_io_counters)
     mib[5] = 0;
 
     if (sysctl(mib, 6, NULL, &len, NULL, 0) < 0) {
-        cout << "os error" << endl;
+        sutil_set_err("os error");
         goto error;
     }
 
     buf = (char*)malloc(len);
     if (buf == NULL) {
-        cout << "Error: no memory" << endl;
+        sutil_set_err("Error: no memory");
         goto error;
     }
 
     if (sysctl(mib, 6, buf, &len, NULL, 0) < 0) {
-        cout << "os error" << endl;
+        sutil_set_err("os error");
         goto error;
     }
 
@@ -1234,10 +1234,11 @@ sutil_net_io_counters(vector<vector<uint64_t>> &net_io_counters)
             nic_info.push_back(if2m->ifm_data.ifi_ibytes);
             nic_info.push_back(if2m->ifm_data.ifi_opackets);
             nic_info.push_back(if2m->ifm_data.ifi_ipackets);
-            nic_info.push_back(if2m->ifm_data.ifi_ierrors);
             nic_info.push_back(if2m->ifm_data.ifi_oerrors);
+            nic_info.push_back(if2m->ifm_data.ifi_ierrors);
             nic_info.push_back(if2m->ifm_data.ifi_iqdrops);
-            net_io_counters.push_back(nic_info);
+
+            net_io_counters[ifc_name] = nic_info;
         }
     }
 
@@ -1272,7 +1273,7 @@ sutil_disk_io_counters(map<string, vector<uint64_t>> &disk_io_counters)
     if (IOServiceGetMatchingServices(kIOMasterPortDefault,
                                      IOServiceMatching(kIOMediaClass),
                                      &disk_list) != kIOReturnSuccess) {
-        cout << "RuntimeError: unable to get the list of disks." << endl;
+        sutil_set_err("RuntimeError: unable to get the list of disks.");
         goto error;
     }
 
@@ -1285,7 +1286,7 @@ sutil_disk_io_counters(map<string, vector<uint64_t>> &disk_io_counters)
 
         if (IORegistryEntryGetParentEntry(disk, kIOServicePlane, &parent)
                 != kIOReturnSuccess) {
-            cout << "RuntimeError: unable to get the disk's parent." << endl;
+            sutil_set_err("RuntimeError: unable to get the disk's parent.");
             IOObjectRelease(disk);
             goto error;
         }
@@ -1298,7 +1299,7 @@ sutil_disk_io_counters(map<string, vector<uint64_t>> &disk_io_counters)
                     kNilOptions
                 ) != kIOReturnSuccess)
             {
-                cout << "RuntimeError: unable to get the parent's properties." << endl;
+                sutil_set_err("RuntimeError: unable to get the parent's properties.");
                 IOObjectRelease(disk);
                 IOObjectRelease(parent);
                 goto error;
@@ -1311,7 +1312,7 @@ sutil_disk_io_counters(map<string, vector<uint64_t>> &disk_io_counters)
                     kNilOptions
                 ) != kIOReturnSuccess)
             {
-                cout << "RuntimeError: unable to get the disk properties." << endl;
+                sutil_set_err("RuntimeError: unable to get the disk properties.");
                 CFRelease(props_dict);
                 IOObjectRelease(disk);
                 IOObjectRelease(parent);
@@ -1332,7 +1333,7 @@ sutil_disk_io_counters(map<string, vector<uint64_t>> &disk_io_counters)
                 props_dict, CFSTR(kIOBlockStorageDriverStatisticsKey));
 
             if (stats_dict == NULL) {
-                cout << "RuntimeError: Unable to get disk stats." << endl;
+                sutil_set_err("RuntimeError: Unable to get disk stats.");
                 goto error;
             }
 

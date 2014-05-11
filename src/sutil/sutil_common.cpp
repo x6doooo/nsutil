@@ -1,15 +1,29 @@
-#include <iostream>
-#include <stdio.h>
-#include <string.h>
-#include <errno.h>
 #include "./sutil_common.h"
 
 using namespace std;
 
-void NoSuchProcess(void) {
-    cout << strerror(ESRCH) << endl;
+static string sutil_error_desc;
+
+int NoSuchProcess(void) {
+    sutil_error_desc = strerror(ESRCH);
+    return -1;
 }
 
-void AccessDenied(void) {
-    cout << strerror(EACCES) << endl;
+int AccessDenied(void) {
+    sutil_error_desc = strerror(EACCES);
+    return -1;
 }
+
+int sutil_set_err(string desc) {
+    sutil_error_desc = desc;
+    return -1;
+}
+
+void sutil_clean_err() {
+    sutil_error_desc.clear();
+}
+
+string sutil_get_err_desc() {
+    return sutil_error_desc;
+}
+

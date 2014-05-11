@@ -116,7 +116,7 @@ int sutil_per_cpu_times(std::vector<std::vector<double>> &per_cpu_times);
 float sutil_boot_time(void);
 int sutil_disk_partitions(std::vector<std::vector<std::string>> &disk_partitions);
 int sutil_proc_open_files(const int32_t &pid, std::vector<proc_open_file> &proc_open_files);
-int sutil_net_io_counters(std::vector<std::vector<uint64_t>> &net_io_counters);
+int sutil_net_io_counters(std::map<std::string, std::vector<uint64_t>> &net_io_counters);
 int sutil_disk_io_counters(std::map<std::string, std::vector<uint64_t>> &disk_io_counters);
 int sutil_users(std::vector<sutil_user_info> &user_list);
 /*
