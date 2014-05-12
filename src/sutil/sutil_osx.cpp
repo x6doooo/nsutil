@@ -695,10 +695,11 @@ int sutil_virtual_mem(uint64_t *&vir_mem)
         return -1;
     }
 
-    vir_mem[0] = (unsigned long long) vm.active_count * pagesize;
-    vir_mem[1] = (unsigned long long) vm.inactive_count * pagesize;
-    vir_mem[2] = (unsigned long long) vm.wire_count * pagesize;
-    vir_mem[3] = (unsigned long long) vm.free_count * pagesize;
+    vir_mem[0] = total;
+    vir_mem[1] = (uint64_t) vm.active_count * pagesize;
+    vir_mem[2] = (uint64_t) vm.inactive_count * pagesize;
+    vir_mem[3] = (uint64_t) vm.wire_count * pagesize;
+    vir_mem[4] = (uint64_t) vm.free_count * pagesize;
     return 0;
 }
 
