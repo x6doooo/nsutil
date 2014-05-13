@@ -321,7 +321,7 @@ error:
 }
 
 /*
- * Return {user_time, kernel_time} (unit: ms)
+ * Return {user_time, kernel_time} (unit: s)
  */
 int sutil_proc_cpu_times(const int32_t &pid, double *&t)
 {
@@ -358,6 +358,7 @@ int sutil_proc_memory_info(const int32_t &pid, uint64_t *&proc_mem)
     if (! sutil_proc_pidinfo(pid, PROC_PIDTASKINFO, &pti, sizeof(pti))) {
         return -1;
     }
+    int pagesize = getpagesize();
 
     // Note: determining other memory stats on OSX is a mess:
     // http://www.opensource.apple.com/source/top/top-67/libtop.c?txt
@@ -366,8 +367,8 @@ int sutil_proc_memory_info(const int32_t &pid, uint64_t *&proc_mem)
     // psutil_proc_pidinfo(pid, PROC_PIDREGIONINFO, &pri, sizeof(pri))
     proc_mem[0] = pti.pti_resident_size;  // resident memory size (rss)
     proc_mem[1] = pti.pti_virtual_size;  // virtual memory size (vms)
-    proc_mem[2] = pti.pti_faults;         // number of page faults (pages)
-    proc_mem[3] = pti.pti_pageins;         // number of actual pageins (pages)
+    proc_mem[2] = pti.pti_faults * pagesize;         // number of page faults (pages)
+    proc_mem[3] = pti.pti_pageins * pagesize;         // number of actual pageins (pages)
     return 0;
 }
 
