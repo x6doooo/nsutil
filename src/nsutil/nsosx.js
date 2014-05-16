@@ -4,6 +4,9 @@ var _osx = require('../../build/Release/nsutil_osx.node');
 var _common = require('./common.js');
 
 
+/**
+ *  Process
+ */
 var _process_class_ = function(pid) {
     this.pid = pid;
 };
@@ -104,10 +107,10 @@ var Process = function(pid) {
     return new _process_class_(pid);
 }
 
-p = pids()[0];
-n = netConnections();
-console.log(n);
 
+/**
+ *  System
+ */
 function usagePercent(used, total, round) {
 
     var percent = used / total * 100;
@@ -242,9 +245,5 @@ module.exports = {
     pids: pids,
     netConnections: netConnections
 };
-
-
-
-
 
 
