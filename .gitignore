@@ -1,0 +1,17 @@
+.DS_Store
+.idea
+node_modules
+
+dev
+
+.idea/encodings.xml
+
+.idea/misc.xml
+
+.idea/modules.xml
+
+.idea/scopes/scope_settings.xml
+
+.idea/syro.iml
+
+.idea/vcs.xml

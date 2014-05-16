@@ -1,0 +1,6 @@
+.DS_Store
+.idea
+dev
+node_modules
+.npmignore
+.gitignore
