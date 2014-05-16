@@ -2,5 +2,6 @@
 .idea
 dev
 node_modules
+test-dev
 .npmignore
 .gitignore
