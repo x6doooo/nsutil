@@ -83,7 +83,7 @@ nsutil_pids_sync(const Arguments &args)
     Local<Array> pids_arr = Array::New(pids.size());
 
     size_t i = 0;
-    for (auto pid : pids) {
+    for (auto &pid : pids) {
         pids_arr->Set(i, Integer::New(pid));
         i++;
     }
@@ -115,7 +115,7 @@ nsutil_proc_cmdline_sync(const Arguments &args)
     Local<Array> args_arr = Array::New(proc_cmdline.size());
 
     int i = 0;
-    for (auto c : proc_cmdline) {
+    for (auto &c : proc_cmdline) {
         args_arr->Set(i, String::New(c.c_str()));
         i++;
     }
@@ -324,7 +324,7 @@ nsutil_proc_memory_maps_sync(const Arguments &args)
     Local<String> shadow_depth_sym = String::NewSymbol("shadow_depth");
 
     size_t i = 0;
-    for (auto mmap : proc_mem_map_grouped_list) {
+    for (auto &mmap : proc_mem_map_grouped_list) {
         Local<Object> tem_obj = Object::New();
 
         tem_obj->Set(pmmap_ext_sym, 
@@ -511,7 +511,7 @@ nsutil_proc_threads_sync(const Arguments &args)
 
     Local<Array> ths_arr = Array::New(threads.size());
     size_t i = 0;
-    for (auto th : threads) {
+    for (auto &th : threads) {
         //cout << th[1] << " | " << th[2] << endl;
         Local<Object> tem_obj = Object::New();
         tem_obj->Set(String::NewSymbol("idx"),
@@ -546,7 +546,7 @@ nsutil_proc_open_files_sync(const Arguments &args)
     }
     Local<Array> fs_arr = Array::New(proc_open_files.size());
     size_t i = 0;
-    for (auto ofs : proc_open_files) {
+    for (auto &ofs : proc_open_files) {
         Local<Object> fs_obj = Object::New();
         fs_obj->Set(String::NewSymbol("path"),
                 String::New(ofs.path.c_str()));
@@ -687,7 +687,7 @@ nsutil_per_cpu_times_sync(const Arguments &args)
     Local<Array> per_cpu_arr = Array::New(per_cpu_times.size());
 
     size_t i = 0;
-    for (auto cpu_times : per_cpu_times) {
+    for (auto &cpu_times : per_cpu_times) {
         Local<Object> cpu_obj = Object::New();
         cpu_obj->Set(String::NewSymbol("user"),
                 Number::New(cpu_times[0]));
@@ -727,7 +727,7 @@ nsutil_disk_partitions_sync(const Arguments &args)
     Local<Array> dps_arr = Array::New(disk_partitions.size());
     size_t i = 0;
 
-    for (auto dps : disk_partitions) {
+    for (auto &dps : disk_partitions) {
         Local<Object> dps_obj = Object::New();
         
         dps_obj->Set(String::NewSymbol("device"),
@@ -794,7 +794,7 @@ nsutil_proc_connections_sync(const Arguments &args)
     Local<Array> proc_conn_list_arr = Array::New(proc_conn_list.size());
 
     size_t i = 0;
-    for (auto conn : proc_conn_list) {
+    for (auto &conn : proc_conn_list) {
         Local<Object> conn_obj = Object::New();
         conn_obj->Set(String::NewSymbol("fd"),
                 Integer::New(conn.fd));
@@ -840,7 +840,7 @@ nsutil_net_io_counters_sync(const Arguments &args)
 
     Local<Object> net_io_objs = Object::New();
 
-    for (auto net_io : net_io_counters) {
+    for (auto &net_io : net_io_counters) {
         
         Local<Object> io_obj = Object::New();
         io_obj->Set(String::NewSymbol("obytes"), 
@@ -875,7 +875,7 @@ nsutil_disk_io_counters_sync(const Arguments &args)
     }
 
     Local<Object> disks_list = Object::New();
-    for (auto disk : disk_io_counters) {
+    for (auto &disk : disk_io_counters) {
         Local<Object> disk_obj = Object::New();
         disk_obj->Set(String::NewSymbol("reads"),
                 Number::New(disk.second[0]));
@@ -907,7 +907,7 @@ nsutil_users_sync(const Arguments &args)
     Local<Array> user_arr = Array::New(user_list.size());
 
     size_t i = 0;
-    for (auto user : user_list) {
+    for (auto &user : user_list) {
         Local<Object> user_obj = Object::New();
         user_obj->Set(String::NewSymbol("username"), 
                 String::New(user.username.c_str()));
