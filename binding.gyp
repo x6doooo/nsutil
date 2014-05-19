@@ -26,6 +26,19 @@
                 ]
             },
         }],
+        [ "OS=='linux'", {
+            "targets": [
+                {
+                    "target_name": "nsutil_linux",
+                    "sources": [
+                        "./src/sutil/sutil_linux.cpp",
+                        "./src/nsutil/nsutil_linux_funcs.cpp",
+                        "./src/nsutil/nsutil_linux.cpp"
+                    ],
+                    "cflags_cc": ["-std=c++11"]
+                }    
+            ]
+        }]
     ]
 }
 
