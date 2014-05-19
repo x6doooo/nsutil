@@ -78,10 +78,23 @@ const PROC_STATUSES = [
     STATUS_ZOMBIE
 ];
 
+function usagePercent(used, total, round) {
+
+    var percent = used / total * 100;
+    
+    if (round) {
+        percent.toFixed(round);
+    }
+
+    return percent;
+
+}
+
 exports.CONN_FAMILY_STR = CONN_FAMILY_STR;
 exports.CONN_TYPE_STR = CONN_TYPE_STR;
 exports.CONN_FAMILY_AND_TYPE = CONN_FAMILY_AND_TYPE;
 exports.TCP_STATUSES = TCP_STATUSES;
 exports.PROC_STATUSES = PROC_STATUSES;
+exports.usagePercent = usagePercent;
 
 

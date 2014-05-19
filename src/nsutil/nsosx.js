@@ -4,9 +4,6 @@ var _osx = require('../../build/Release/nsutil_osx.node');
 var _common = require('./common.js');
 
 
-/**
- *  Process
- */
 var _process_class_ = function(pid) {
     this.pid = pid;
 };
@@ -108,29 +105,6 @@ var Process = function(pid) {
 }
 
 
-/**
- *  System
- */
-function usagePercent(used, total, round) {
-
-    var percent = used / total * 100;
-    
-    if (round) {
-        percent.toFixed(round);
-    }
-
-    return percent;
-
-}
-
-function virtualMemory() {
-    var v_mem = _osx.nsutil_virtual_mem_sync();
-    v_mem.avail = v_mem.inactive + v_mem.free;
-    v_mem.used = v_mem.active + v_mem.inactive + v_mem.wire;
-    v_mem.percent = usagePercent(v_mem.total - v_mem.used, v_mem.total, 2);
-    return v_mem;
-}
-
 function swapMemory() {
     var s_mem = _osx.nsutil_swap_mem_sync();
     s_mem.percent = (s_mem.used / s_mem.total, s_mem.total, 2);
@@ -231,6 +205,16 @@ function getTerminalMap() {
 }
 
 
+function virtualMemory() {
+    var v_mem = _osx.nsutil_virtual_mem_sync();
+    v_mem.avail = v_mem.inactive + v_mem.free;
+    v_mem.used = v_mem.active + v_mem.inactive + v_mem.wire;
+    v_mem.percent = _common.usagePercent(v_mem.total - v_mem.used, v_mem.total, 2);
+    return v_mem;
+}
+
+
+
 module.exports = {
     Process: Process,
     virtualMemory: virtualMemory,
@@ -245,5 +229,9 @@ module.exports = {
     pids: pids,
     netConnections: netConnections
 };
+
+
+
+
 
 
