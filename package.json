@@ -10,7 +10,7 @@
     "io",
     "net"
   ],
-  "version": "0.0.2",
+  "version": "0.0.3",
   "author": "Dx.Yang <x6doooo@gmail.com>",
   "repository": {
     "type": "git",
@@ -26,7 +26,7 @@
   },
   "license": [
     {
-      "type" : "MIT",
+      "type" : "BSD",
       "url" : "https://github.com/x6doooo/nsutil/raw/master/LICENSE"
     }
   ],
