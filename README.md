@@ -13,7 +13,7 @@ Node.js system utilities
 
     npm install nsutil
 
-###Default Binaries
+###Prebuilt binaries (node v0.10.28)
 
     OSX 64-bit
 
