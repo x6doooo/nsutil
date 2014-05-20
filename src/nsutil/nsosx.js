@@ -64,9 +64,11 @@ __proto.numThreads = function() {
 __proto.openFiles = function() {
     return _osx.nsutil_proc_open_files_sync(this.pid);
 };
-__proto.connections = function(family, types) {
-    family = family || _common.CONN_FAMILY_AND_TYPE.all[0];
-    types = types || _common.CONN_FAMILY_AND_TYPE.all[1];
+__proto.connections = function(family_types) {
+    family_types = family_types || 'all';
+    var ft = _common.CONN_FAMILY_AND_TYPE[family_types];
+    var family = ft[0];
+    var types  = ft[1];
     var conns = _osx.nsutil_proc_connections_sync(this.pid, family, types);
     if (conns) {
         conns.forEach(function(v, i, a) {
@@ -107,7 +109,7 @@ var Process = function(pid) {
 
 function swapMemory() {
     var s_mem = _osx.nsutil_swap_mem_sync();
-    s_mem.percent = (s_mem.used / s_mem.total, s_mem.total, 2);
+    //s_mem.percent = (s_mem.used / s_mem.total, s_mem.total, 2);
     return s_mem;
 }
 
@@ -134,8 +136,8 @@ function cpuCountLogical() {
     return _osx.nsutil_cpu_count_logical_sync();
 }
 
-function cpuCountPhysical() {
-    return _osx.nsutil_cpu_count_physical_sync();
+function cpuCountPhys() {
+    return _osx.nsutil_cpu_count_phys_sync();
 }
 
 function bootTime() {
@@ -156,15 +158,15 @@ function pids() {
 
 function netConnections(kind) {
     kind = kind || "all";
-    var k = _common.CONN_FAMILY_AND_TYPE[kind];
-    var f = k[0];
-    var t = k[1];
+    //var k = _common.CONN_FAMILY_AND_TYPE[kind];
+    //var f = k[0];
+    //var t = k[1];
     var conns;
     var conns_arr = [];
     var pids_arr = pids();
     var i, len;
     pids_arr.forEach(function(v, i, a) {
-        conns = Process(v).connections(f, t);
+        conns = Process(v).connections(kind);
         if (conns) {
             for (i = 0, len = conns.length; i < len; i++) {
                 conns[i].pid = v;
@@ -209,7 +211,7 @@ function virtualMemory() {
     var v_mem = _osx.nsutil_virtual_mem_sync();
     v_mem.avail = v_mem.inactive + v_mem.free;
     v_mem.used = v_mem.active + v_mem.inactive + v_mem.wire;
-    v_mem.percent = _common.usagePercent(v_mem.total - v_mem.used, v_mem.total, 2);
+    //v_mem.percent = _common.usagePercent(v_mem.total - v_mem.avail, v_mem.total, 2);
     return v_mem;
 }
 
@@ -222,16 +224,12 @@ module.exports = {
     cpuTimes: cpuTimes,
     perCpuTimes: perCpuTimes,
     cpuCountLogical: cpuCountLogical,
-    cpuCountPhysical: cpuCountPhysical,
+    cpuCountPhys: cpuCountPhys,
     bootTime: bootTime,
     diskPartitions: diskPartitions,
     users: users,
     pids: pids,
     netConnections: netConnections
 };
-
-
-
-
 
 
