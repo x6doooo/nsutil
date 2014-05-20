@@ -13,6 +13,18 @@ Node.js system utilities
 
     npm install nsutil
 
+###Default Binaries
+
+    OSX 64-bit
+
+###Rebuild
+
+```bash
+node-gyp clean
+node-gyp configure
+node-gyp build
+```
+
 ###Usage
 
 ```js
