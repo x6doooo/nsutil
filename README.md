@@ -76,11 +76,11 @@ ns.bootTime()
 ns.diskPartitions()
 /* =>
  [ { device: '/dev/disk0s2',
-     mount_type: '/',
+     mount_point: '/',
      fs_type: 'hfs',
      options: 'rw,local,rootfs,dovolfs,journaled,multilabel' },
    { device: 'devfs',
-     mount_type: '/dev',
+     mount_point: '/dev',
      fs_type: 'devfs',
      options: 'rw,local,dontbrowse,multilabel' },
      ...] 

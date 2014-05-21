@@ -732,7 +732,7 @@ nsutil_disk_partitions_sync(const Arguments &args)
         
         dps_obj->Set(String::NewSymbol("device"),
                 String::New(dps[0].c_str()));
-        dps_obj->Set(String::NewSymbol("mount_type"),
+        dps_obj->Set(String::NewSymbol("mount_point"),
                 String::New(dps[1].c_str()));
         dps_obj->Set(String::NewSymbol("fs_type"),
                 String::New(dps[2].c_str()));
