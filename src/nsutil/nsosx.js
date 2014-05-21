@@ -178,6 +178,13 @@ function netConnections(kind) {
     return conns_arr;
 }
 
+function netIOCounters() {
+    return _osx.nsutil_net_io_counters_sync();
+}
+
+function diskIOCounters() {
+    return _osx.nsutil_disk_io_counters_sync();
+}
 
 function virtualMemory() {
     var v_mem = _osx.nsutil_virtual_mem_sync();
@@ -201,7 +208,9 @@ module.exports = {
     diskPartitions: diskPartitions,
     users: users,
     pids: pids,
-    netConnections: netConnections
+    netConnections: netConnections,
+    netIOCounters: netIOCounters,
+    diskIOCounters: diskIOCounters
 };
 
 

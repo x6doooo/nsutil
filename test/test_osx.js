@@ -63,6 +63,16 @@ describe('[platform] osx', function() {
         console.log('格式参见proc.connections');
     });
 
+    it ('[method] netIOCounters', function() {
+        var n = ns.netIOCounters();
+        console.log(n);
+    })
+
+    it ('[method] diskIOCounters', function() {
+        var d = ns.diskIOCounters();
+        console.log(d);
+    })
+
     describe('[Class] Process', function() {
         
         var pid = ns.pids()[0];

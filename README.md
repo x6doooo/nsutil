@@ -114,6 +114,46 @@ ns.netConnections()
  ]
  */
 
+ns.netIOCounters()
+/* =>
+ { bridge0: 
+   { obytes: 684,
+     ibytes: 0,
+     opkts: 2,
+     ipkts: 0,
+     oerrs: 0,
+     ierrs: 0,
+     iqdrops: 0 },
+  en0: 
+   { obytes: 160304770,
+     ibytes: 2578607670,
+     opkts: 1614175,
+     ipkts: 2421909,
+     oerrs: 0,
+     ierrs: 0,
+     iqdrops: 0 },
+  ...}
+ */
+
+ns.diskIOCounters()
+/* =>
+ { disk0: 
+   { reads: 1170484,
+     writes: 668337,
+     read_bytes: 18236701696,
+     write_bytes: 21262711296,
+     read_time: 825561,
+     write_time: 540807 },
+   disk1:
+   { reads: 11704,
+     writes: 6683,
+     read_bytes: 182367016,
+     write_bytes: 212627112,
+     read_time: 8255,
+     write_time: 5408 }
+   ...} 
+ */
+
 /**
  *  Class Process
  */
