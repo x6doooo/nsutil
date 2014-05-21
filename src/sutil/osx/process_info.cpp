@@ -1,43 +1,27 @@
 #include "process_info.h"
 
-/*
- * Return 1 if PID exists in the current process list, else 0.
- */
 bool
 sutil_pid_exists(const int32_t &pid)
 {
 
     int kill_ret;
 
-    // save some time if it's an invalid PID
     if (pid < 0) {
         return false;
     }
 
-    // if kill returns success of permission denied we know it's a valid PID
     kill_ret = kill(pid , 0);
     if ( (0 == kill_ret) || (EPERM == errno) ) {
         return true;
     }
 
-    // otherwise return 0 for PID not found
     return false;
 }
 
 
-/*
- * Returns a list of all BSD processes on the system.  This routine
- * allocates the list and puts it in *procList and a count of the
- * number of entries in *procCount.  You are responsible for freeing
- * this list (use "free" from System framework).
- * On success, the function returns 0.
- * On error, the function returns a BSD errno value.
- */
 int
 sutil_get_proc_list(struct kinfo_proc **procList, size_t *procCount)
 {
-    // Declaring mib as const requires use of a cast since the
-    // sysctl prototype doesn't include the const modifier.
     static const int mib3[3] = { CTL_KERN, KERN_PROC, KERN_PROC_ALL };
     size_t           size, size2;
     void            *ptr;
@@ -49,18 +33,6 @@ sutil_get_proc_list(struct kinfo_proc **procList, size_t *procCount)
 
     *procCount = 0;
 
-    /*
-     * We start by calling sysctl with ptr == NULL and size == 0.
-     * That will succeed, and set size to the appropriate length.
-     * We then allocate a buffer of at least that size and call
-     * sysctl with that buffer.  If that succeeds, we're done.
-     * If that call fails with ENOMEM, we throw the buffer away
-     * and try again.
-     * Note that the loop calls sysctl with NULL again.  This is
-     * is necessary because the ENOMEM failure case sets size to
-     * the amount of data returned, not the amount of data that
-     * could have been returned.
-     */
     while (lim-- > 0) {
         size = 0;
         if (sysctl((int *)mib3, 3, NULL, &size, NULL, 0) == -1) {
@@ -68,6 +40,7 @@ sutil_get_proc_list(struct kinfo_proc **procList, size_t *procCount)
         }
 
         size2 = size + (size >> 3);  // add some
+        
         if (size2 > size) {
             ptr = malloc(size2);
             if (ptr == NULL) {
@@ -75,10 +48,10 @@ sutil_get_proc_list(struct kinfo_proc **procList, size_t *procCount)
             } else {
                 size = size2;
             }
-        }
-        else {
+        } else {
             ptr = malloc(size);
         }
+
         if (ptr == NULL) {
             return ENOMEM;
         }
@@ -113,7 +86,7 @@ sutil_get_argmax()
     return 0;
 }
 
-// return process args as a python list
+// return process args as vector<string>
 int
 sutil_get_arg_list(const int32_t &pid, std::vector<std::string> &arg_list)
 {
@@ -134,15 +107,11 @@ sutil_get_arg_list(const int32_t &pid, std::vector<std::string> &arg_list)
     // read argmax and allocate memory for argument space.
     argmax = sutil_get_argmax();
     if (! argmax) {
-        //return arglist;
-        //PyErr_SetFromErrno(PyExc_OSError);
         goto error;
     }
 
     procargs = (char *)malloc(argmax);
     if (NULL == procargs) {
-        //return arglist;
-        //PyErr_SetFromErrno(PyExc_OSError);
         goto error;
     }
 
@@ -172,7 +141,6 @@ sutil_get_arg_list(const int32_t &pid, std::vector<std::string> &arg_list)
 
     if (arg_ptr == arg_end) {
         free(procargs);
-        //return Py_BuildValue("[]");
         return -1;
     }
 
@@ -185,19 +153,9 @@ sutil_get_arg_list(const int32_t &pid, std::vector<std::string> &arg_list)
 
     // iterate through arguments
     curr_arg = arg_ptr;
-    //arglist = Py_BuildValue("[]");
-    //if (!arglist)
-        //goto error;
     while (arg_ptr < arg_end && nargs > 0) {
         if (*arg_ptr++ == '\0') {
-            //arg = Py_BuildValue("s", curr_arg);
-            //if (!arg)
-            //    goto error;
             arg_list.push_back(curr_arg);
-            //if (PyList_Append(arglist, arg))
-            //    goto error;
-            //Py_DECREF(arg);
-            // iterate to next arg and decrement # of args
             curr_arg = arg_ptr;
             nargs--;
         }
@@ -207,8 +165,6 @@ sutil_get_arg_list(const int32_t &pid, std::vector<std::string> &arg_list)
     return 0;
 
 error:
-    //Py_XDECREF(arg);
-    //Py_XDECREF(arglist);
     if (procargs != NULL)
         free(procargs);
     return -1;
@@ -230,8 +186,6 @@ sutil_get_kinfo_proc(const pid_t &pid, struct kinfo_proc *kp)
 
     // now read the data from sysctl
     if (sysctl(mib, 4, kp, &len, NULL, 0) == -1) {
-        // raise an exception and throw errno as the error
-        //PyErr_SetFromErrno(PyExc_OSError);
         return -1;
     }
 

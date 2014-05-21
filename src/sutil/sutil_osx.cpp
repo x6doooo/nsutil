@@ -1,9 +1,5 @@
 #include "sutil_osx.h"
 
-
-/*
- * A wrapper around host_statistics() invoked with HOST_VM_INFO.
- */
 using namespace std;
 
 int
@@ -26,7 +22,7 @@ sutil_sys_vminfo(vm_statistics_data_t *vmstat)
 
 
 /*
- * Return vetor<int> of all the PIDs running on the system.
+ * Return vector<int> of all the PIDs running on the system.
  */
 int
 sutil_pids(vector<int32_t> &pids)
@@ -113,7 +109,7 @@ sutil_proc_exe(const int32_t &pid)
 
 
 /*
- * Return process cmdline as a Python list of cmdline arguments.
+ * proc_cmdline => process cmdline arguments
  */
 int
 sutil_proc_cmdline(const int32_t &pid, vector<string> &proc_cmdline)
@@ -280,19 +276,6 @@ sutil_proc_memory_maps(const int32_t &pid, vector<proc_mem_map_grouped> &proc_me
                 }
             }
 
-            /*
-            py_tuple = Py_BuildValue(
-                "sssIIIIIH",
-                addr_str,                                 // "start-end"address
-                perms,                                    // "rwx" permissions
-                buf,                                      // path
-                info.pages_resident * pagesize,           // rss
-                info.pages_shared_now_private * pagesize, // private
-                info.pages_swapped_out * pagesize,        // swapped
-                info.pages_dirtied * pagesize,            // dirtied
-                info.ref_count,                           // ref count
-                info.shadow_depth                         // shadow depth
-            );*/
             mmap.pmmap_ext = addr_str;
             mmap.addr_perms = perms;
             mmap.path = buf;
@@ -572,11 +555,9 @@ sutil_proc_open_files(const int32_t &pid, vector<proc_open_file> &proc_open_file
             }
             // --- /errors checking
 
-            // --- construct python list
             opfs.path = vi.pvip.vip_path;
             opfs.fd = (int)fdp_pointer->proc_fd;
             proc_open_files.push_back(opfs);
-            // --- /construct python list
         }
     }
 
@@ -648,7 +629,6 @@ int sutil_cpu_count_logical(void)
     len = sizeof(ncpu);
 
     if (sysctl(mib, 2, &ncpu, &len, NULL, 0) == -1) {
-        // mimic os.cpu_count()
         return -1;
     }
     return ncpu;
@@ -662,7 +642,6 @@ int sutil_cpu_count_phys(void)
     int num;
     size_t size = sizeof(int);
     if (sysctlbyname("hw.physicalcpu", &num, &size, NULL, 0)) {
-        // mimic os.cpu_count()
         return -1;
     }
     return num;
@@ -944,55 +923,11 @@ error:
     return -1;
 }
 
-/*
-int conn_tmap(const string &key, vector<int> &family, vector<int> &types) {
-    switch(key) {
-        case "all":
-            family = { AF_INET, AF_INET6, AF_UNIX }; types = { SOCK_STREAM, SOCK_DGRAM };
-            break;
-        case "tcp":
-            family = { AF_INET, AF_INET6 }; types = { SOCK_STREAM };
-            break;
-        case "tcp4":
-            family = { AF_INET }; types = { SOCK_STREAM };
-            break;
-        case "tcp6":
-            family = { AF_INET6 }; types = { SOCK_STREAM };
-            break;
-        case "udp":
-            family = { AF_INET, AF_INET6 }; types = { SOCK_DGRAM };
-            break;
-        case "udp4":
-            family = { AF_INET }; types = { SOCK_DGRAM };
-            break;
-        case "udp6":
-            family = { AF_INET6 }; types = { SOCK_DGRAM };
-            break;
-        case "inet":
-            family = { AF_INET, AF_INET6 }; types = { SOCK_STREAM, SOCK_DGRAM };
-            break;
-        case "inet4":
-            family = { AF_INET }; types = { SOCK_STREAM, SOCK_DGRAM };
-            break;
-        case "inet6":
-            family = { AF_INET6 }; types = { SOCK_STREAM, SOCK_DGRAM };
-            break;
-        case "unix":
-            family = { AF_UNIX }; types = { SOCK_STREAM, SOCK_DGRAM };
-            break;
-        default:
-            return -1;
-    }
-    return 0;
-
-}
-*/
-
 
 // a signaler for connections without an actual status
 
 /*
- * Return process TCP and UDP connections as a list of tuples.
+ * Return process TCP and UDP connections as a list.
  * References:
  * - lsof source code: http://goo.gl/SYW79 and http://goo.gl/wNrC0
  * - /usr/include/sys/proc_info.h
@@ -1255,7 +1190,7 @@ error:
 
 
 /*
- * Return a Python dict of tuples for disk I/O information
+ * Return a map for disk I/O information
  */
 int
 sutil_disk_io_counters(map<string, vector<uint64_t>> &disk_io_counters)
@@ -1267,8 +1202,6 @@ sutil_disk_io_counters(map<string, vector<uint64_t>> &disk_io_counters)
     io_registry_entry_t disk;
     io_iterator_t disk_list;
     
-    //PyObject *py_retdict = PyDict_New();
-    //PyObject *py_disk_info = NULL;
     vector<uint64_t> disk_info(6);
 
     // Get list of disks
@@ -1399,13 +1332,6 @@ sutil_disk_io_counters(map<string, vector<uint64_t>> &disk_io_counters)
             disk_info.push_back(write_time / 1000 / 1000);
 
             disk_io_counters[disk_name] = disk_info;
-            /*
-            if (!py_disk_info)
-                goto error;
-            if (PyDict_SetItemString(py_retdict, disk_name, py_disk_info))
-                goto error;
-            Py_DECREF(py_disk_info);
-            */
             CFRelease(parent_dict);
             IOObjectRelease(parent);
             CFRelease(props_dict);

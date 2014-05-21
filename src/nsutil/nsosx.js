@@ -2,6 +2,7 @@ var fs = require('fs');
 
 var _osx = require('../../build/Release/nsutil_osx.node');
 var _common = require('./common.js');
+var _posix = require('./nsposix.js');
 
 
 var _process_class_ = function(pid) {
@@ -43,7 +44,7 @@ __proto.gids = function() {
 };
 __proto.terminal = function() {
     var tty_nr = _osx.nsutil_proc_tty_nr_sync(this.pid);
-    var terminalMap = getTerminalMap();
+    var terminalMap = _posix.getTerminalMap();
     return terminalMap[tty_nr];
 };
 __proto.memoryInfo = function() {

@@ -1,7 +1,7 @@
 #include "sutil_posix.h"
 
 /*
- * Given a PID return process priority as a Python integer.
+ * Given a PID return process priority as a integer.
  */
 using namespace std;
 int
