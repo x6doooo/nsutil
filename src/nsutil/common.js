@@ -1,8 +1,10 @@
-const AF_INET = 2;
-const AF_INET6 = 10;
-const AF_UNIX = 1;
-const SOCK_STREAM = 1;
-const SOCK_DGRAM = 2;
+var CONN = {};
+
+const AF_INET     = CONN.AF_INET     = 2;
+const AF_INET6    = CONN.AF_INET6     = 10;
+const AF_UNIX     = CONN.AF_UNIX     = 1;
+const SOCK_STREAM = CONN.SOCK_STREAM = 1;
+const SOCK_DGRAM  = CONN.SOCK_DGRAM  = 2;
 
 const CONN_FAMILY_STR = {
     '1': 'AF_UNIX',
@@ -90,6 +92,7 @@ function usagePercent(used, total, round) {
 
 }
 
+exports.CONN = CONN;
 exports.CONN_FAMILY_STR = CONN_FAMILY_STR;
 exports.CONN_TYPE_STR = CONN_TYPE_STR;
 exports.CONN_FAMILY_AND_TYPE = CONN_FAMILY_AND_TYPE;
