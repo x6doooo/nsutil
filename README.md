@@ -105,10 +105,8 @@ ns.netConnections()
  [ { fd: 22,
     family: 'AF_INET',
     type: 'SOCK_STREAM',
-    laddr_ip: '10.62.9.27',
-    laddr_port: 50896,
-    raddr_ip: '42.156.152.1',
-    raddr_port: 16000,
+    laddr: ['X.X.X.X', XXXX],
+    raddr: ['X.X.X.X', XXXX],
     state: 'ESTABLISHED' },
     ...
  ]
