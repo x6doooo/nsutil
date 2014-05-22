@@ -12,6 +12,8 @@
 #include <sys/syscall.h>
 #include <sys/sysinfo.h>
 #include <sys/resource.h>
+#include <signal.h>
+#include <unistd.h>
 
 #include <vector>
 #include <string>
@@ -89,9 +91,9 @@ sutil_proc_cpu_affinity_set(const int32_t &pid, std::vector<int32_t> &cpu_set_li
 int
 sutil_users(std::vector<sutil_user_info> &user_list);
 
+bool
+sutil_pid_exists(const int32_t &pid);
 
-
-
-
+int sutil_sysconf(std::string &which);
 
 

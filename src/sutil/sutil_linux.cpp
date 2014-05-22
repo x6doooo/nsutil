@@ -136,6 +136,27 @@ sutil_linux_prlimit(const pid_t &pid,
 }
 #endif
 
+bool
+sutil_pid_exists(const int32_t &pid)
+{
+
+    int kill_ret;
+
+    // save some time if it's an invalid PID
+    if (pid < 0) {
+        return false;
+    }
+
+    // if kill returns success of permission denied we know it's a valid PID
+    kill_ret = kill(pid , 0);
+    if ( (0 == kill_ret) || (EPERM == errno) ) {
+        return true;
+    }
+
+    // otherwise return 0 for PID not found
+    return false;
+}
+
 
 
 /*
@@ -303,3 +324,16 @@ error:
     endutent();
     return -1;
 }
+
+
+int sutil_sysconf(std::string &which) 
+{
+    if (which == "SC_CLK_TCK") {
+        return sysconf(_SC_CLK_TCK);
+    }
+    if (which == "SC_PAGE_SIZE") {
+        return sysconf(_SC_PAGE_SIZE);
+    }
+}
+
+
