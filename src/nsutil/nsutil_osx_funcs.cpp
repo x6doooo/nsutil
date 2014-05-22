@@ -22,6 +22,7 @@ nsutil_pid_exists_sync(const Arguments &args)
 }
 
 
+/*
 // handle sutil_posix
 Handle<Value>
 nsutil_posix_getpriority_sync(const Arguments &args)
@@ -64,7 +65,7 @@ nsutil_posix_setpriority_sync(const Arguments &args)
 
     return scope.Close(Undefined());
 }
-
+*/
 
 // handle sutil_osx
 Handle<Value> 
