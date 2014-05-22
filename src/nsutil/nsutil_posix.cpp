@@ -11,5 +11,10 @@ void Init(v8::Handle<v8::Object> exports) {
             v8::FunctionTemplate::New(nsutil_posix_setpriority_sync)->GetFunction());
 }
 
-NODE_MODULE(nsutil_posix, Init);
+
+#ifdef __APPLE__
+NODE_MODULE(nsutil_posix_osx, Init);
+#else
+NODE_MODULE(nsutil_posix_linux, Init);
+#endif
 
