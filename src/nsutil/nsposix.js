@@ -1,6 +1,7 @@
 // nsposix.js
 var fs = require('fs');
 var _osx = require('../../build/Release/nsutil_osx.node');
+var _posix = require('../../build/Release/nsutil_posix.node');
 
 function pidExists(pid) {
     return _osx.nsutil_pid_exists_sync(pid);
@@ -30,7 +31,17 @@ function getTerminalMap() {
     return terminalMap;
 }
 
+function getPriority(pid) {
+    return _posix.nsutil_posix_getpriority_sync(pid);
+}
+
+function setPriority(pid, prio) {
+    return _posix.nsutil_posix_setpriority_sync(pid, prio);
+}
+
 module.exports = {
     pidExists: pidExists,
-    getTerminalMap: getTerminalMap
+    getTerminalMap: getTerminalMap,
+    getPriority: getPriority,
+    setPriority: setPriority
 };

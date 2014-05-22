@@ -3,6 +3,17 @@
         ["CXX", "/usr/bin/clang++"],
         ["LINK", "/usr/bin/clang++"],
     ],
+    "targets" : [
+    {
+        "target_name": "nsutil_posix",
+        "sources": [
+            './src/sutil/sutil_posix.cpp',
+            './src/nsutil/nsutil_posix_funcs.cpp',
+            './src/nsutil/nsutil_posix.cpp'
+        ],
+        "cflags_cc": ["-std=c++11"]
+    }    
+    ], 
     "conditions": [
         [ "OS=='mac'", {
             "targets": [

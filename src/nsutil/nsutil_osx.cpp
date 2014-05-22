@@ -97,12 +97,13 @@ void Init(v8::Handle<v8::Object> exports) {
     exports->Set(v8::String::NewSymbol("nsutil_disk_io_counters_sync"), 
             v8::FunctionTemplate::New(nsutil_disk_io_counters_sync)->GetFunction());
 
+    /*
     exports->Set(v8::String::NewSymbol("nsutil_posix_getpriority_sync"), 
             v8::FunctionTemplate::New(nsutil_posix_getpriority_sync)->GetFunction());
 
     exports->Set(v8::String::NewSymbol("nsutil_posix_setpriority_sync"), 
             v8::FunctionTemplate::New(nsutil_posix_setpriority_sync)->GetFunction());
-
+    */
     exports->Set(v8::String::NewSymbol("nsutil_users_sync"), 
             v8::FunctionTemplate::New(nsutil_users_sync)->GetFunction());
 

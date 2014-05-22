@@ -2,20 +2,20 @@
 #include <node.h>
 #include <v8.h>
 #include "../sutil/osx/process_info.h"
-#include "../sutil/sutil_posix.h"
+//include "../sutil/sutil_posix.h"
 #include "../sutil/sutil_osx.h"
 
 
 
 v8::Handle<v8::Value>
 nsutil_pid_exists_sync(const v8::Arguments &args);
-
+/*
 v8::Handle<v8::Value>
 nsutil_posix_getpriority_sync(const v8::Arguments &args);
 
 v8::Handle<v8::Value>
 nsutil_posix_setpriority_sync(const v8::Arguments &args);
-
+*/
 v8::Handle<v8::Value> 
 nsutil_pids_sync(const v8::Arguments &args); 
 

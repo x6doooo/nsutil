@@ -86,10 +86,10 @@ __proto.numFds = function() {
 // TODO: __proto.wait
 
 __proto.getNice = function() {
-    return _osx.nsutil_posix_getpriority_sync(this.pid);
+    return _posix.getPriority(this.pid);
 };
 __proto.setNice = function(nice) {
-    _osx.nsutil_posix_setpriority_sync(this.pid, nice);
+    _posix.setPriority(this.pid, nice);
 };
 __proto.status = function() {
     var st = _osx.nsutil_proc_status_sync(this.pid);
