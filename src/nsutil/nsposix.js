@@ -1,9 +1,13 @@
 // nsposix.js
 var fs = require('fs');
-var _osx = require('../../build/Release/nsutil_osx.node');
-
-function pidExists(pid) {
-    return _osx.nsutil_pid_exists_sync(pid);
+var os = require('os');
+if (os.platform == 'darwin') {
+    var _osx = require('../../build/Release/nsutil_osx.node');
+    function pidExists(pid) {
+        return _osx.nsutil_pid_exists_sync(pid);
+    }
+} else {
+    var pidExists = null;
 }
 
 function getTerminalMap() {
