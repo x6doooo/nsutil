@@ -11,7 +11,7 @@ describe('[platform] osx', function() {
     it ('[method] swapMemory', function() {
         var sMem = ns.swapMemory();
         console.log(sMem);
-        assert.equal(sMem.total, sMem.used + sMem.avail);
+        assert.equal(sMem.total, sMem.used + sMem.free);
     });
 
     it ('[method] cpuTimes & perCpuTime', function() {

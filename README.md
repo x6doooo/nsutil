@@ -48,9 +48,9 @@ ns.swapMemory()
 ```js
  { total:    1073741824,
    used:     6815744,
-   avail:    1066926080,
-   pageins:  2724483072,
-   pageouts: 20860928 }    
+   free:    1066926080,
+   sin:  2724483072,
+   sout: 20860928 }    
 ``` 
 
 ns.cpuTimes()
@@ -299,8 +299,6 @@ proc.memMaps()
         "shadow_depth" : 1
     },
     ...]
- */
-
 ```
 
 

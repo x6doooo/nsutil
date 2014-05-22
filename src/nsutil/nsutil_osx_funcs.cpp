@@ -634,11 +634,11 @@ nsutil_swap_mem_sync(const Arguments &args)
             Number::New(swap_mem[0]));
     swap_obj->Set(String::NewSymbol("used"),
             Number::New(swap_mem[1]));
-    swap_obj->Set(String::NewSymbol("avail"),
+    swap_obj->Set(String::NewSymbol("free"),
             Number::New(swap_mem[2]));
-    swap_obj->Set(String::NewSymbol("pageins"),
+    swap_obj->Set(String::NewSymbol("sin"),
             Number::New(swap_mem[3]));
-    swap_obj->Set(String::NewSymbol("pageouts"),
+    swap_obj->Set(String::NewSymbol("sout"),
             Number::New(swap_mem[4]));
 
     delete[] swap_mem;
