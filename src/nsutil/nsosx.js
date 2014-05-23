@@ -116,20 +116,24 @@ function swapMemory() {
 
 function cpuTimes() {
     var t = _osx.nsutil_cpu_times_sync();
+    /*
     for (var k in t) {
         t[k] *= 1000;
     }
+    */
     return t;
 }
 
 function perCpuTimes() {
     var t = _osx.nsutil_per_cpu_times_sync();
     var k;
+    /*
     t.forEach(function(v, i, a) {
         for (k in v) {
             v[k] *= 1000;
         }
     });
+    */
     return t;
 }
 
@@ -203,7 +207,7 @@ module.exports = {
     cpuTimes: cpuTimes,
     perCpuTimes: perCpuTimes,
     cpuCountLogical: cpuCountLogical,
-    cpuCountPhys: cpuCountPhys,
+    cpuCountPhysical: cpuCountPhys,
     bootTime: bootTime,
     diskPartitions: diskPartitions,
     users: users,
