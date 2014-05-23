@@ -30,7 +30,7 @@ describe('[platform] osx', function() {
     })
 
     it ('[method] cpuCountPhys', function() {
-        var n = ns.cpuCountPhys();
+        var n = ns.cpuCountPhysical();
         console.log(n);
     })
 
