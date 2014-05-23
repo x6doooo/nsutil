@@ -23,6 +23,12 @@ void Init(v8::Handle<v8::Object> exports) {
     exports->Set(v8::String::NewSymbol("nsutil_users"), 
             v8::FunctionTemplate::New(nsutil_users)->GetFunction());
 
+    exports->Set(v8::String::NewSymbol("nsutil_pid_exists"), 
+            v8::FunctionTemplate::New(nsutil_pid_exists)->GetFunction());
+
+    exports->Set(v8::String::NewSymbol("nsutil_sysconf"), 
+            v8::FunctionTemplate::New(nsutil_sysconf)->GetFunction());
+
     /*
     exports->Set(v8::String::NewSymbol("nsutil_"), 
             v8::FunctionTemplate::New(nsutil_)->GetFunction());

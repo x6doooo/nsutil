@@ -6,6 +6,22 @@ using namespace std;
 #if SUTIL_HAVE_IOPRIO
 
 Handle<Value>
+nsutil_pid_exists(const Arguments &args)
+{
+    HandleScope scope;
+    if (args.Length() == 0) {
+        ThrowException(Exception::TypeError(String::New("Wrong number of arguments")));
+        return scope.Close(Undefined());
+    }
+    if (!args[0]->IsNumber()) {
+        ThrowException(Exception::TypeError(String::New("Wrong arguments")));
+        return scope.Close(Undefined());
+    }
+    int32_t pid = args[0]->Int32Value();
+    return scope.Close(Boolean::New(sutil_pid_exists(pid)));
+}
+
+Handle<Value>
 nsutil_proc_ioprio_get(const Arguments &args) 
 {
     HandleScope scope;
@@ -159,8 +175,6 @@ nsutil_proc_cpu_affinity_get(const Arguments &args)
 //int
 //sutil_proc_cpu_affinity_set(const int32_t &pid, vector<int32_t> &cpu_set_list)
 
-
-
 //int
 //sutil_users(vector<sutil_user_info> &user_list)
 Handle<Value>
@@ -179,11 +193,11 @@ nsutil_users(const Arguments &args)
     int i = 0;
     for (auto &u : user_list) {
         Local<Object> obj = Object::New();
-        obj->Set(String::NewSymbol("username"), String::New(u.username));
-        obj->Set(String::NewSymbol("tty"), String::New(u.tty));
-        obj->Set(String::NewSymbol("host"), String::New(u.host));
+        obj->Set(String::NewSymbol("username"), String::New(u.username.c_str()));
+        obj->Set(String::NewSymbol("tty"), String::New(u.tty.c_str()));
+        obj->Set(String::NewSymbol("host"), String::New(u.host.c_str()));
         obj->Set(String::NewSymbol("start_time"), Number::New(u.start_time));
-        obj->Set(String::NewSymbol("user_proc"), Boolean::New(u.user_proc););
+        obj->Set(String::NewSymbol("user_proc"), Boolean::New(u.user_proc));
         arr->Set(i, obj);
         i++;
     }
@@ -193,7 +207,25 @@ nsutil_users(const Arguments &args)
 
 
 
-
+// sysconf
+Handle<Value>
+nsutil_sysconf(const Arguments &args) 
+{
+    HandleScope scope;
+    if (args.Length() == 0) {
+        ThrowException(Exception::TypeError(String::New("Wrong number of arguments")));
+        return scope.Close(Undefined());
+    }
+    if (!args[0]->IsString()) {
+        ThrowException(Exception::TypeError(String::New("Wrong arguments")));
+        return scope.Close(Undefined());
+    }
+    String::Utf8Value str(args[0]->ToString());
+    string which = *str;
+    
+    int ret = sutil_sysconf(which);
+    return scope.Close(Number::New(ret));
+}
 
 
 

@@ -21,6 +21,9 @@ nsutil_proc_cpu_affinity_get(const v8::Arguments &args);
 v8::Handle<v8::Value>
 nsutil_users(const v8::Arguments &args);
 
+v8::Handle<v8::Value>
+nsutil_pid_exists(const v8::Arguments &args);
 
-
+v8::Handle<v8::Value>
+nsutil_sysconf(const v8::Arguments &args);
 
