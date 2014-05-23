@@ -150,7 +150,7 @@ describe('[platform] osx', function() {
 
         it ('[method] proc.connections', function() {
             var c = proc.connections();
-            c = ns.Process(1421).connections('inet');
+           // c = ns.Process(1421).connections('inet');
             console.log(c);
         })
 
