@@ -35,6 +35,7 @@ var ns = require('nsutil')
 
 ns.virtualMemory()
 ```js
+ // OSX
  { total:    4294967296,
    active:   1476833280,
    inactive: 926130176,
@@ -42,28 +43,38 @@ ns.virtualMemory()
    free:     237256704,
    avail:    1163386880,
    used:     3606433792 }
+
+ // Linux
+ { total:    383238144,
+   avail:    315265024,
+   inactive: 71880704,
+   used:     206503936,
+   free:     176734208,
+   active:   66637824,
+   buffers:  25927680,
+   cached:   112603136 }
 ```
 
 ns.swapMemory()
 ```js
- { total:    1073741824,
-   used:     6815744,
-   free:    1066926080,
-   sin:  2724483072,
-   sout: 20860928 }    
+ { total: 1073741824,
+   used:  6815744,
+   free:  1066926080,
+   sin:   2724483072,
+   sout:  20860928 }    
 ``` 
 
 ns.cpuTimes()
 ```js    
- { user: 4294480, nice: 0, sys: 2571340, idle: 61515210 } // ms
+ { user: 40.76, nice: 118.53, system: 683.01, idle: 287470.94 }
 ``` 
 
 ns.perCpuTimes()
 ```js
- [ { user: 1741890, nice: 0, sys: 1236480, idle: 14117300 },
-   { user: 680530,  nice: 0, sys: 421590,  idle: 15993000 },
-   { user: 1290530, nice: 0, sys: 625510,  idle: 15179090 },
-   { user: 581530,  nice: 0, sys: 287760,  idle: 16225820 } ] 
+ [ { user: 174.18, nice: 0, sys: 123.64, idle: 1411.73 },
+   { user: 68.05,  nice: 0, sys: 42.15,  idle: 1599.30 },
+   { user: 129.05, nice: 0, sys: 62.55,  idle: 1517.90 },
+   { user: 58.15,  nice: 0, sys: 28.77,  idle: 1622.58 } ] 
 ``` 
 
 ns.cpuCountLogical()
@@ -97,9 +108,9 @@ ns.diskPartitions()
 ns.users()
 ```js
  [
-  {"username":"Dx.Yang","tty":"console","host":"","startTime":1400548608},
-  {"username":"Dx.Yang","tty":"ttys000","host":"","startTime":1400548608},
-  {"username":"Dx.Yang","tty":"ttys001","host":"","startTime":1400548608}
+  {"username":"Dx.Yang", "tty":"console", "host":"", "startTime":1400548608},
+  {"username":"Dx.Yang", "tty":"ttys000", "host":"", "startTime":1400548608},
+  {"username":"Dx.Yang", "tty":"ttys001", "host":"", "startTime":1400548608}
  ]
 ```
 
@@ -111,11 +122,11 @@ ns.pids()
 ns.netConnections()
 ```js
  [ { fd: 22,
-    family: 'AF_INET',
-    type: 'SOCK_STREAM',
-    laddr: ['X.X.X.X', XXXX],
-    raddr: ['X.X.X.X', XXXX],
-    state: 'ESTABLISHED' },
+     family: 'AF_INET',
+     type: 'SOCK_STREAM',
+     laddr: ['X.X.X.X', XXXX],
+     raddr: ['X.X.X.X', XXXX],
+     state: 'ESTABLISHED' },
     ...]
 ```
 
@@ -177,10 +188,10 @@ proc.exe()
 proc.cmdline()
 ```js
  [ 'node',
-  '/usr/local/lib/node_modules/mocha/bin/_mocha',
-  'test_osx.js',
-  '-R',
-  'spec' ]
+   '/usr/local/lib/node_modules/mocha/bin/_mocha',
+   'test_osx.js',
+   '-R',
+   'spec' ]
 ```
 
 proc.ppid()
@@ -225,7 +236,11 @@ proc.createTime()
 
 proc.numCtxSwitches()
 ```js    
+ // OSX
  271
+ 
+ // Linux
+ { voluntary_ctxt_switches: 32, nonvoluntary_ctxt_switches: 4 }
 ```
 
 proc.numThreads()
@@ -236,19 +251,19 @@ proc.numThreads()
 proc.openFiles()
 ```js
  [ { path: '/dev/ttys004', fd: 0 },
-  { path: '/dev/ttys004', fd: 1 },
-  { path: '/dev/ttys004', fd: 2 },
+   { path: '/dev/ttys004', fd: 1 },
+   { path: '/dev/ttys004', fd: 2 },
   ... ]
 ```
 
 proc.connections('inet')    // default is 'all'
 ```js
  [ { fd: 22,
-    family: 'AF_INET',
-    type: 'SOCK_STREAM',
-    laddr: ['X.X.X.X', XXXX],
-    raddr: ['X.X.X.X', XXXX],
-    state: 'ESTABLISHED' },
+     family: 'AF_INET',
+     type: 'SOCK_STREAM',
+     laddr: ['X.X.X.X', XXXX],
+     raddr: ['X.X.X.X', XXXX],
+     state: 'ESTABLISHED' },
     ...] 
 ```
 
@@ -287,10 +302,12 @@ proc.threads()
 
 proc.memMaps()
 ```js
+ // OSX
  [
     {
         "pmmap_ext" : "0000000100000000-0000000100617000",
-        "addr_perms" : "r-x/rwx","path":"/usr/local/bin/node",
+        "addr_perms" : "r-x/rwx",
+        "path":"/usr/local/bin/node",
         "rss" : 45056,
         "private" : 0,
         "swapped" : 0,
@@ -299,7 +316,37 @@ proc.memMaps()
         "shadow_depth" : 1
     },
     ...]
+
+ // Linux
+ [
+    {  
+        "pmmap_ext": "7f1517342000-7f151734e000",
+        "addr_perms": "r-xp",
+        "path": "/lib/x86_64-linux-gnu/libnss_files-2.17.so",
+        "Size": 49152,
+        "Rss": 0, 
+        "Pss": 0, 
+        "Shared_Clean": 0, 
+        "Shared_Dirty": 0, 
+        "Private_Clean": 0,
+        "Private_Dirty": 0,
+        "Referenced": 0,
+        "Anonymous": 0,
+        "AnonHugePages": 0,
+        "Swap": 0,
+        "KernelPageSize": 4096,
+        "MMUPageSize": 4096,
+        "Locked": 0
+    },
+    ...]
+
 ```
+
+proc.ioCounters()   **(Linux only)**
+```js
+ { rcount: 20474, wcount: 14600, rbytes: 2109440, wbytes: 8192 }
+```
+
 
 
 
