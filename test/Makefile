@@ -5,6 +5,6 @@ osx:
 endif
 ifeq ($(OS),Linux)
 linux:
-	mocha test_linux.js -R spec
+	sudo mocha test_linux.js -R spec
 endif
 
