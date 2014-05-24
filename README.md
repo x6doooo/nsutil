@@ -7,7 +7,7 @@ Node.js system utilities
 ###Summary
 
 * a fork of [psutil](https://code.google.com/p/psutil/), rebuilt with Node.js
-* support OSX ( linux support coming soon... )
+* support OSX & Linux
 
 ###Install
 
@@ -15,7 +15,8 @@ Node.js system utilities
 
 ###Prebuilt binaries (node v0.10.28)
 
-    OSX 64-bit
+    OSX x86_64
+    Linux x86_64
 
 ###Rebuild (if you need)
 
@@ -256,7 +257,7 @@ proc.openFiles()
   ... ]
 ```
 
-proc.connections('inet')    // default is 'all'
+proc.connections('inet')    **// default is 'all'***
 ```js
  [ { fd: 22,
      family: 'AF_INET',
@@ -342,7 +343,7 @@ proc.memMaps()
 
 ```
 
-proc.ioCounters()   **(Linux only)**
+proc.ioCounters()   **// Linux only**
 ```js
  { rcount: 20474, wcount: 14600, rbytes: 2109440, wbytes: 8192 }
 ```
