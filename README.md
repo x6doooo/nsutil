@@ -32,10 +32,10 @@ var ns = require('nsutil')
 
 ###APIs
 
-####system methods
+####Memory
 
-ns.virtualMemory()
 ```js
+>>> ns.virtualMemory()
  // OSX
  { total:    4294967296,
    active:   1476833280,
@@ -44,7 +44,6 @@ ns.virtualMemory()
    free:     237256704,
    avail:    1163386880,
    used:     3606433792 }
-
  // Linux
  { total:    383238144,
    avail:    315265024,
@@ -54,47 +53,39 @@ ns.virtualMemory()
    active:   66637824,
    buffers:  25927680,
    cached:   112603136 }
-```
 
-ns.swapMemory()
-```js
+>>> ns.swapMemory()
  { total: 1073741824,
    used:  6815744,
    free:  1066926080,
    sin:   2724483072,
    sout:  20860928 }    
-``` 
+```
 
-ns.cpuTimes()
-```js    
- { user: 40.76, nice: 118.53, system: 683.01, idle: 287470.94 }
-``` 
+####Memory
 
-ns.perCpuTimes()
 ```js
+>>> ns.cpuTimes() 
+ { user: 40.76, nice: 118.53, system: 683.01, idle: 287470.94 }
+
+>>> ns.perCpuTimes()
  [ { user: 174.18, nice: 0, sys: 123.64, idle: 1411.73 },
    { user: 68.05,  nice: 0, sys: 42.15,  idle: 1599.30 },
    { user: 129.05, nice: 0, sys: 62.55,  idle: 1517.90 },
    { user: 58.15,  nice: 0, sys: 28.77,  idle: 1622.58 } ] 
-``` 
 
-ns.cpuCountLogical()
-```js
+>>> ns.cpuCountLogical()
  4
-```
 
-ns.cpuCountPhys()
-```js
+>>> ns.cpuCountPhys()
  2
+
 ```
 
-ns.bootTime()
-```js
- 1400543744000 // timestamp ms
-```
+####Disks
 
-ns.diskPartitions()
 ```js
+>>> ns.diskPartitions()
  [ { device: '/dev/disk0s2',
      mount_point: '/',
      fs_type: 'hfs',
@@ -104,24 +95,29 @@ ns.diskPartitions()
      fs_type: 'devfs',
      options: 'rw,local,dontbrowse,multilabel' },
      ...] 
+
+>>> ns.diskIOCounters()
+ { disk0: 
+   { reads: 1170484,
+     writes: 668337,
+     read_bytes: 18236701696,
+     write_bytes: 21262711296,
+     read_time: 825561,
+     write_time: 540807 },
+   disk1:
+   { reads: 11704,
+     writes: 6683,
+     read_bytes: 182367016,
+     write_bytes: 212627112,
+     read_time: 8255,
+     write_time: 5408 }
+   ...}      
 ```
 
-ns.users()
-```js
- [
-  {"username":"Dx.Yang", "tty":"console", "host":"", "startTime":1400548608},
-  {"username":"Dx.Yang", "tty":"ttys000", "host":"", "startTime":1400548608},
-  {"username":"Dx.Yang", "tty":"ttys001", "host":"", "startTime":1400548608}
- ]
-```
+####Network
 
-ns.pids()
 ```js
- [6652,6651,6640,6639,6638,6633,6632,6615,6606...]
-```
-
-ns.netConnections()
-```js
+>>> ns.netConnections()
  [ { fd: 22,
      family: 'AF_INET',
      type: 'SOCK_STREAM',
@@ -129,10 +125,8 @@ ns.netConnections()
      raddr: ['X.X.X.X', XXXX],
      state: 'ESTABLISHED' },
     ...]
-```
 
-ns.netIOCounters()
-```js
+>>> ns.netIOCounters()
  { bridge0: 
    { obytes: 684,
      ibytes: 0,
@@ -152,113 +146,78 @@ ns.netIOCounters()
   ...}
 ```
 
-ns.diskIOCounters()
+####Other system info
+
 ```js
- { disk0: 
-   { reads: 1170484,
-     writes: 668337,
-     read_bytes: 18236701696,
-     write_bytes: 21262711296,
-     read_time: 825561,
-     write_time: 540807 },
-   disk1:
-   { reads: 11704,
-     writes: 6683,
-     read_bytes: 182367016,
-     write_bytes: 212627112,
-     read_time: 8255,
-     write_time: 5408 }
-   ...} 
+>>> ns.bootTime()
+ 1400543744000 // timestamp ms
+
+>>> ns.users()
+ [
+  {"username":"Dx.Yang", "tty":"console", "host":"", "startTime":1400548608},
+  {"username":"Dx.Yang", "tty":"ttys000", "host":"", "startTime":1400548608},
+  {"username":"Dx.Yang", "tty":"ttys001", "host":"", "startTime":1400548608}
+ ]
 ```
 
+####Process management
 
-#####Class Process
-
-var proc = ns.Process(pid)
-
-proc.name()
 ```js
+>>> ns.pids()
+ [6652,6651,6640,6639,6638,6633,6632,6615,6606...]
+
+>>> proc = ns.Process(pid)
+
+>>> proc.name()
  'node'
-```
 
-proc.exe()
-```js
+>>> proc.exe()
  '/usr/local/bin/node'
-```
 
-proc.cmdline()
-```js
+>>> proc.cmdline()
  [ 'node',
    '/usr/local/lib/node_modules/mocha/bin/_mocha',
    'test_osx.js',
    '-R',
    'spec' ]
-```
 
-proc.ppid()
-```js
+>>> proc.ppid()
  6651  //parent process id    
-```
 
-proc.cwd()
-```js
+>>> proc.cwd()
  '/Users/node_modules/nsutil/test'
-```
 
-proc.uids()
-```js
+>>> proc.uids()
  { real: 501, effective: 501, saved: 501 }
-```
 
-proc.gids()
-```js
+>>> proc.gids()
  { real: 20, effective: 20, saved: 20 }
-```
 
-proc.terminal()
-```js
- /dev/ttys004
-```
+>>> proc.terminal()
+ '/dev/ttys004'
 
-proc.memoryInfo()   
-```js
+>>> proc.memoryInfo()   
  { rss: 18440192, vms: 3119169536, faults: 19517440, pageins: 0 }
-```
 
-proc.cpuTimes()
-```js
- { user: 0.139774113, sys: 0.027113125 }    // s
-```
+>>> proc.cpuTimes()
+ { user: 0.139774113, sys: 0.027113125 }
 
-proc.createTime()
-```js
+>>> proc.createTime()
  1400565545000 // timestamp ms
-```
 
-proc.numCtxSwitches()
-```js    
- // OSX
- 271
- 
- // Linux
- { voluntary_ctxt_switches: 32, nonvoluntary_ctxt_switches: 4 }
-```
+>>> proc.numCtxSwitches()
+ { voluntary: 32, involuntary: 4 } 
 
-proc.numThreads()
-```js
+>>> proc.numThreads()
  4
-```
 
-proc.openFiles()
-```js
+>>> proc.openFiles()
  [ { path: '/dev/ttys004', fd: 0 },
    { path: '/dev/ttys004', fd: 1 },
    { path: '/dev/ttys004', fd: 2 },
   ... ]
-```
 
-proc.connections('inet')    **// default is 'all'***
-```js
+>>> proc.connections('inet')    // default is 'all'
  [ { fd: 22,
      family: 'AF_INET',
      type: 'SOCK_STREAM',
@@ -266,27 +225,19 @@ proc.connections('inet')    **// default is 'all'***
      raddr: ['X.X.X.X', XXXX],
      state: 'ESTABLISHED' },
     ...] 
-```
 
-proc.numFds()
-```js
+>>> proc.numFds()
  12
-```
 
-proc.getNice()
-```js
+>>> proc.getNice()
  0
-```
 
-proc.setNice(niceValue)
+>>> proc.setNice(niceValue)
 
-proc.status()
-```js
- running
-```
+>>> proc.status()
+ 'running'
 
-proc.threads()
-```js
+>>> proc.threads()
  [ { idx: 1, 
      user: 0.14695000648498535, 
      sys: 0.02574799954891205 },
@@ -299,10 +250,8 @@ proc.threads()
    { idx: 4,
      user: 0.0006169999833218753,
      sys: 0.0019920000340789557 } ]
-```
 
-proc.memMaps()
-```js
+>>> proc.memMaps()
  // OSX
  [
     {
@@ -317,7 +266,6 @@ proc.memMaps()
         "shadow_depth" : 1
     },
     ...]
-
  // Linux
  [
     {  
@@ -341,10 +289,7 @@ proc.memMaps()
     },
     ...]
 
-```
-
-proc.ioCounters()   **// Linux only**
-```js
+>>> proc.ioCounters()   // Linux only
  { rcount: 20474, wcount: 14600, rbytes: 2109440, wbytes: 8192 }
 ```
 
