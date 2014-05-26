@@ -325,8 +325,9 @@ nsutil_proc_memory_maps_sync(const Arguments &args)
     Local<String> shadow_depth_sym = String::NewSymbol("shadow_depth");
 
     size_t i = 0;
+    Local<Object> tem_obj = Object::New();
+
     for (auto &mmap : proc_mem_map_grouped_list) {
-        Local<Object> tem_obj = Object::New();
 
         tem_obj->Set(pmmap_ext_sym, 
                 String::New(mmap.pmmap_ext.c_str()));
@@ -355,7 +356,7 @@ nsutil_proc_memory_maps_sync(const Arguments &args)
         tem_obj->Set(shadow_depth_sym,
                 Number::New(mmap.shadow_depth));
 
-        m_arr->Set(i, tem_obj);
+        m_arr->Set(i, tem_obj->Clone());
         i++;
     }
 
@@ -512,16 +513,16 @@ nsutil_proc_threads_sync(const Arguments &args)
 
     Local<Array> ths_arr = Array::New(threads.size());
     size_t i = 0;
+    Local<Object> tem_obj = Object::New();
     for (auto &th : threads) {
         //cout << th[1] << " | " << th[2] << endl;
-        Local<Object> tem_obj = Object::New();
         tem_obj->Set(String::NewSymbol("idx"),
                 Number::New(th[0]));
         tem_obj->Set(String::NewSymbol("user"),
                 Number::New(th[1]));
         tem_obj->Set(String::NewSymbol("sys"),
                 Number::New(th[2]));
-        ths_arr->Set(i, tem_obj);
+        ths_arr->Set(i, tem_obj->Clone());
         i++;
     }
     return scope.Close(ths_arr); 
@@ -547,13 +548,13 @@ nsutil_proc_open_files_sync(const Arguments &args)
     }
     Local<Array> fs_arr = Array::New(proc_open_files.size());
     size_t i = 0;
+    Local<Object> fs_obj = Object::New();
     for (auto &ofs : proc_open_files) {
-        Local<Object> fs_obj = Object::New();
         fs_obj->Set(String::NewSymbol("path"),
                 String::New(ofs.path.c_str()));
         fs_obj->Set(String::NewSymbol("fd"),
                 Integer::New(ofs.fd));
-        fs_arr->Set(i, fs_obj);
+        fs_arr->Set(i, fs_obj->Clone());
         i++;
     }
     return scope.Close(fs_arr);
@@ -688,8 +689,8 @@ nsutil_per_cpu_times_sync(const Arguments &args)
     Local<Array> per_cpu_arr = Array::New(per_cpu_times.size());
 
     size_t i = 0;
+    Local<Object> cpu_obj = Object::New();
     for (auto &cpu_times : per_cpu_times) {
-        Local<Object> cpu_obj = Object::New();
         cpu_obj->Set(String::NewSymbol("user"),
                 Number::New(cpu_times[0]));
         cpu_obj->Set(String::NewSymbol("nice"),
@@ -699,7 +700,7 @@ nsutil_per_cpu_times_sync(const Arguments &args)
         cpu_obj->Set(String::NewSymbol("idle"),
                 Number::New(cpu_times[3]));
 
-        per_cpu_arr->Set(i, cpu_obj);
+        per_cpu_arr->Set(i, cpu_obj->Clone());
         i++;
 
     }
@@ -727,9 +728,9 @@ nsutil_disk_partitions_sync(const Arguments &args)
 
     Local<Array> dps_arr = Array::New(disk_partitions.size());
     size_t i = 0;
+    Local<Object> dps_obj = Object::New();
 
     for (auto &dps : disk_partitions) {
-        Local<Object> dps_obj = Object::New();
         
         dps_obj->Set(String::NewSymbol("device"),
                 String::New(dps[0].c_str()));
@@ -739,7 +740,7 @@ nsutil_disk_partitions_sync(const Arguments &args)
                 String::New(dps[2].c_str()));
         dps_obj->Set(String::NewSymbol("options"),
                 String::New(dps[3].c_str()));
-        dps_arr->Set(i, dps_obj);
+        dps_arr->Set(i, dps_obj->Clone());
         i++;
     }
 
@@ -795,8 +796,8 @@ nsutil_proc_connections_sync(const Arguments &args)
     Local<Array> proc_conn_list_arr = Array::New(proc_conn_list.size());
 
     size_t i = 0;
+    Local<Object> conn_obj = Object::New();
     for (auto &conn : proc_conn_list) {
-        Local<Object> conn_obj = Object::New();
         conn_obj->Set(String::NewSymbol("fd"),
                 Integer::New(conn.fd));
         conn_obj->Set(String::NewSymbol("family"),
@@ -806,10 +807,12 @@ nsutil_proc_connections_sync(const Arguments &args)
         if (conn.family == 1) {
             conn_obj->Set(String::NewSymbol("laddr"),
                 String::New(conn.addr.c_str()));
-            conn_obj->Set(String::NewSymbol("rcaddr"),
+            conn_obj->Set(String::NewSymbol("raddr"),
                 String::New(conn.caddr.c_str()));
+            /*
             conn_obj->Set(String::NewSymbol("conn_none"),
                 Integer::New(conn.conn_none));
+                */
         } else if (conn.family == 2 || conn.family == 10) {
             Local<Array> laddr = Array::New();
             laddr->Set(0, String::New(conn.laddr_ip.c_str()));
@@ -832,7 +835,7 @@ nsutil_proc_connections_sync(const Arguments &args)
                 Integer::New(conn.state));
                 */
         }
-        proc_conn_list_arr->Set(i, conn_obj);
+        proc_conn_list_arr->Set(i, conn_obj->Clone());
         i++;
     }
 
@@ -851,9 +854,9 @@ nsutil_net_io_counters_sync(const Arguments &args)
 
     Local<Object> net_io_objs = Object::New();
 
+    Local<Object> io_obj = Object::New();
     for (auto &net_io : net_io_counters) {
         
-        Local<Object> io_obj = Object::New();
         io_obj->Set(String::NewSymbol("obytes"), 
                 Number::New(net_io.second[0]));
         io_obj->Set(String::NewSymbol("ibytes"), 
@@ -869,7 +872,7 @@ nsutil_net_io_counters_sync(const Arguments &args)
         io_obj->Set(String::NewSymbol("iqdrops"), 
                 Number::New(net_io.second[6]));
 
-        net_io_objs->Set(String::NewSymbol(net_io.first.c_str()), io_obj);
+        net_io_objs->Set(String::NewSymbol(net_io.first.c_str()), io_obj->Clone());
 
     }
 
@@ -886,8 +889,8 @@ nsutil_disk_io_counters_sync(const Arguments &args)
     }
 
     Local<Object> disks_list = Object::New();
+    Local<Object> disk_obj = Object::New();
     for (auto &disk : disk_io_counters) {
-        Local<Object> disk_obj = Object::New();
         disk_obj->Set(String::NewSymbol("reads"),
                 Number::New(disk.second[0]));
         disk_obj->Set(String::NewSymbol("writes"),
@@ -900,7 +903,7 @@ nsutil_disk_io_counters_sync(const Arguments &args)
                 Number::New(disk.second[4]));
         disk_obj->Set(String::NewSymbol("write_time"),
                 Number::New(disk.second[5]));
-        disks_list->Set(String::NewSymbol(disk.first.c_str()), disk_obj);
+        disks_list->Set(String::NewSymbol(disk.first.c_str()), disk_obj->Clone());
     }
 
     return scope.Close(disks_list);
@@ -918,8 +921,8 @@ nsutil_users_sync(const Arguments &args)
     Local<Array> user_arr = Array::New(user_list.size());
 
     size_t i = 0;
+    Local<Object> user_obj = Object::New();
     for (auto &user : user_list) {
-        Local<Object> user_obj = Object::New();
         user_obj->Set(String::NewSymbol("username"), 
                 String::New(user.username.c_str()));
         user_obj->Set(String::NewSymbol("tty"), 
@@ -928,7 +931,7 @@ nsutil_users_sync(const Arguments &args)
                 String::New(user.host.c_str()));
         user_obj->Set(String::NewSymbol("startTime"), 
                 Number::New(user.start_time));
-        user_arr->Set(i, user_obj);
+        user_arr->Set(i, user_obj->Clone());
         i++;
     }
     return scope.Close(user_arr);

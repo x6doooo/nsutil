@@ -97,8 +97,8 @@ nsutil_disk_partitions(const Arguments &args)
     Local<Array> arr = Array::New(devlist.size());
 
     int i = 0;
+    Local<Object> obj = Object::New();
     for (auto &dev : devlist) {
-        Local<Object> obj = Object::New();
         obj->Set(String::NewSymbol("device"),
                 String::New(dev[0].c_str()));
         obj->Set(String::NewSymbol("mountpoint"),
@@ -107,7 +107,7 @@ nsutil_disk_partitions(const Arguments &args)
                 String::New(dev[2].c_str()));
         obj->Set(String::NewSymbol("opts"),
                 String::New(dev[3].c_str()));
-        arr->Set(i, obj);
+        arr->Set(i, obj->Clone());
         i++;
     }
 
@@ -174,6 +174,30 @@ nsutil_proc_cpu_affinity_get(const Arguments &args)
 //XXX TODO
 //int
 //sutil_proc_cpu_affinity_set(const int32_t &pid, vector<int32_t> &cpu_set_list)
+Handle<Value>
+nsutil_proc_cpu_affinity_set(const Arguments &args) 
+{
+    HandleScope scope;
+
+    if (args.Length() != 2) {
+        ThrowException(Exception::TypeError(String::New("Wrong number of arguments")));
+        return scope.Close(Undefined());
+    }
+    if (!args[0]->IsNumber() || !args[1]->IsArray()) {
+        ThrowException(Exception::TypeError(String::New("Wrong arguments")));
+        return scope.Close(Undefined());
+    }
+
+    int32_t pid = args[0]->Int32Value();
+
+
+    return scope.Close();
+
+}
+
+
+
+
 
 //int
 //sutil_users(vector<sutil_user_info> &user_list)
@@ -189,16 +213,16 @@ nsutil_users(const Arguments &args)
     }
     
     Local<Array> arr = Array::New(user_list.size());
+    Local<Object> obj = Object::New();
 
     int i = 0;
     for (auto &u : user_list) {
-        Local<Object> obj = Object::New();
         obj->Set(String::NewSymbol("username"), String::New(u.username.c_str()));
         obj->Set(String::NewSymbol("tty"), String::New(u.tty.c_str()));
         obj->Set(String::NewSymbol("host"), String::New(u.host.c_str()));
         obj->Set(String::NewSymbol("start_time"), Number::New(u.start_time));
         obj->Set(String::NewSymbol("user_proc"), Boolean::New(u.user_proc));
-        arr->Set(i, obj);
+        arr->Set(i, obj->Clone());
         i++;
     }
 
