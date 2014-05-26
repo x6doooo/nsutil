@@ -171,7 +171,7 @@ nsutil_proc_cpu_affinity_get(const Arguments &args)
     return scope.Close(Number::New(mask));
 }
 
-//XXX TODO
+//XXX
 //int
 //sutil_proc_cpu_affinity_set(const int32_t &pid, vector<int32_t> &cpu_set_list)
 Handle<Value>
@@ -191,7 +191,9 @@ nsutil_proc_cpu_affinity_set(const Arguments &args)
     int32_t pid = args[0]->Int32Value();
 
 
-    return scope.Close();
+    //TODO
+
+    return scope.Close(Undefined());
 
 }
 
