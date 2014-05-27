@@ -1,15 +1,16 @@
 // nsposix.js
 var fs = require('fs');
 var os = require('os');
+var _arch = os.arch();
 if (os.platform() == 'darwin') {
-    var _osx = require('../../build/Release/nsutil_osx.node');
-    var _posix = require('../../build/Release/nsutil_posix_osx.node');
+    var _osx = require('../../build/Release/' + _arch + '/nsutil_osx.node');
+    var _posix = require('../../build/Release/' + _arch + '/nsutil_posix_osx.node');
     function pidExists(pid) {
         return _osx.nsutil_pid_exists_sync(pid);
     }
 } else {
     var pidExists = null;
-    var _posix = require('../../build/Release/nsutil_posix_linux.node');
+    var _posix = require('../../build/Release/' + _arch + '/nsutil_posix_linux.node');
 }
 
 function getTerminalMap() {
