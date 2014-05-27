@@ -15,8 +15,9 @@ Node.js system utilities
 
 ###Prebuilt binaries (node v0.10.28)
 
-    OSX x86_64
-    Linux x86_64
+    OSX 64-bit
+    Linux 64-bit
+    Linux 32-bit
 
 ###Rebuild (if you need)
 
