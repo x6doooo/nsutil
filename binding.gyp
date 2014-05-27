@@ -3,6 +3,16 @@
         ["CXX", "/usr/bin/clang++"],
         ["LINK", "/usr/bin/clang++"],
     ],
+    "variables": {
+        "conditions": [
+            ["OS=='mac'", {
+                "target_os%": "osx"
+            }],
+            ["OS=='linux'", {
+                "target_os%": "linux"
+            }]
+        ]
+    },
     "conditions": [
         [ "OS=='mac'", {
             "targets": [
@@ -26,14 +36,14 @@
                         './src/nsutil/nsutil_posix.cpp'
                     ],
                     "cflags_cc": ["-std=c++11"]
-                }    
+                }
             ],
             'xcode_settings': {
                 'OTHER_CPLUSPLUSFLAGS' : ['-std=c++11'],
                 'OTHER_LDFLAGS': [
                     '-framework CoreFoundation -framework IOKit'
                 ]
-            },
+            }
         }],
         [ "OS=='linux'", {
             "targets": [
@@ -54,9 +64,25 @@
                         './src/nsutil/nsutil_posix.cpp'
                     ],
                     "cflags_cc": ["-std=c++11"]
-                }    
+                }
             ]
         }]
+    ],
+    "targets": [
+        {
+            "target_name": "action_after_build",
+            "type": "none",
+            "dependencies": [ "nsutil_<(target_os)", "nsutil_posix_<(target_os)" ],
+            "copies": [
+                {
+                    "files": [ 
+                        "<(module_root_dir)/build/Release/nsutil_<(target_os).node", 
+                        "<(module_root_dir)/build/Release/nsutil_posix_<(target_os).node" 
+                    ],
+                    "destination": "<(module_root_dir)/build/Release/<(target_arch)/"
+                }
+            ]
+        }
     ]
 }
 

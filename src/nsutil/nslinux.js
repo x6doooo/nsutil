@@ -2,7 +2,10 @@ var fs = require('fs');
 var _common = require('./common.js');
 var _posix = require('./nsposix.js');
 var CONN = _common.CONN;
-var _linux = require('../../build/Release/nsutil_linux.node'); 
+
+var os = require('os');
+var _arch = os.arch();
+var _linux = require('../../build/Release/' + _arch + '/nsutil_linux.node'); 
 
 var CLOCK_TICKS = _linux.nsutil_sysconf('SC_CLK_TCK');
 var PAGE_SIZE = _linux.nsutil_sysconf('SC_PAGE_SIZE');
@@ -657,9 +660,9 @@ proto.numCtxSwitches = function() {
     var ret = {};
     f.forEach(function(v) {
         if (v.indexOf('nonvoluntary_ctxt_switches') >= 0) {
-            ret.nonvoluntary_ctxt_switches = +v.split(/\s+/)[1];
+            ret.involuntary = +v.split(/\s+/)[1];
         }else if (v.indexOf('voluntary_ctxt_switches') >= 0) {
-            ret.voluntary_ctxt_switches = +v.split(/\s+/)[1];
+            ret.voluntary = +v.split(/\s+/)[1];
         }
 
     });

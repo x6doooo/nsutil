@@ -32,6 +32,26 @@ var ns = require('nsutil')
 
 ###APIs
 
+####CPU
+
+```js
+>>> ns.cpuTimes() 
+ { user: 40.76, nice: 118.53, system: 683.01, idle: 287470.94 }
+
+>>> ns.perCpuTimes()
+ [ { user: 174.18, nice: 0, sys: 123.64, idle: 1411.73 },
+   { user: 68.05,  nice: 0, sys: 42.15,  idle: 1599.30 },
+   { user: 129.05, nice: 0, sys: 62.55,  idle: 1517.90 },
+   { user: 58.15,  nice: 0, sys: 28.77,  idle: 1622.58 } ] 
+
+>>> ns.cpuCountLogical()
+ 4
+
+>>> ns.cpuCountPhys()
+ 2
+
+```
+
 ####Memory
 
 ```js
@@ -60,26 +80,6 @@ var ns = require('nsutil')
    free:  1066926080,
    sin:   2724483072,
    sout:  20860928 }    
-```
-
-####Memory
-
-```js
->>> ns.cpuTimes() 
- { user: 40.76, nice: 118.53, system: 683.01, idle: 287470.94 }
-
->>> ns.perCpuTimes()
- [ { user: 174.18, nice: 0, sys: 123.64, idle: 1411.73 },
-   { user: 68.05,  nice: 0, sys: 42.15,  idle: 1599.30 },
-   { user: 129.05, nice: 0, sys: 62.55,  idle: 1517.90 },
-   { user: 58.15,  nice: 0, sys: 28.77,  idle: 1622.58 } ] 
-
->>> ns.cpuCountLogical()
- 4
-
->>> ns.cpuCountPhys()
- 2
-
 ```
 
 ####Disks

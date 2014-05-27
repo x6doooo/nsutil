@@ -1,6 +1,8 @@
 var fs = require('fs');
+var os = require('os');
 
-var _osx = require('../../build/Release/nsutil_osx.node');
+var _arch = os.arch();
+var _osx = require('../../build/Release/' + _arch + '/nsutil_osx.node');
 var _common = require('./common.js');
 var _posix = require('./nsposix.js');
 
@@ -57,7 +59,10 @@ __proto.createTime = function() {
     return _osx.nsutil_proc_create_time_sync(this.pid) * 1000;
 };
 __proto.numCtxSwitches = function() {
-    return _osx.nsutil_proc_num_ctx_switches_sync(this.pid);
+    return {
+        voluntary: _osx.nsutil_proc_num_ctx_switches_sync(this.pid),
+        involuntary: 0
+    };
 };
 __proto.numThreads = function() {
     return _osx.nsutil_proc_num_threads_sync(this.pid);
@@ -126,7 +131,7 @@ function cpuTimes() {
 
 function perCpuTimes() {
     var t = _osx.nsutil_per_cpu_times_sync();
-    var k;
+    //var k;
     /*
     t.forEach(function(v, i, a) {
         for (k in v) {
