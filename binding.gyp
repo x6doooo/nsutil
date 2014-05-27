@@ -1,7 +1,7 @@
 {
     "make_global_settings": [
-        ["CXX", "/usr/bin/g++"],
-        ["LINK", "/usr/bin/g++"],
+        ["CXX", "/usr/bin/clang++"],
+        ["LINK", "/usr/bin/clang++"],
     ],
     "variables": {
         "conditions": [
