@@ -120,33 +120,19 @@ function swapMemory() {
 }
 
 function cpuTimes(cb) {
-
-/*
     if (cb && typeof cb == 'function') {
         _osx.nsutil_cpu_times_async(cb);
         return;
     }
-*/
     return _osx.nsutil_cpu_times_sync();
-    /*
-    for (var k in t) {
-        t[k] *= 1000;
-    }
-    */
-    //return t;
 }
 
-function perCpuTimes() {
-    var t = _osx.nsutil_per_cpu_times_sync();
-    //var k;
-    /*
-    t.forEach(function(v, i, a) {
-        for (k in v) {
-            v[k] *= 1000;
-        }
-    });
-    */
-    return t;
+function perCpuTimes(cb) {
+    if (cb && typeof cb == 'function') {
+        _osx.nsutil_per_cpu_times_async(cb);
+        return;
+    }
+    return _osx.nsutil_per_cpu_times_sync();
 }
 
 function cpuCountLogical() {

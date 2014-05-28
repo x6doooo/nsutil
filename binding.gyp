@@ -24,6 +24,7 @@
                         './src/sutil/sutil_osx.cpp',
                         './src/sutil/sutil_posix.cpp',
                         './src/nsutil/nsutil_osx_funcs.cpp',
+                        './src/nsutil/nsutil_osx_funcs_async.cpp',
                         './src/nsutil/nsutil_osx.cpp'
                     ],
                     "cflags_cc": ["-std=c++11"]

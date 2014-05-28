@@ -603,6 +603,7 @@ nsutil_swap_mem_sync(const Arguments &args)
     return scope.Close(swap_obj);
 }
 
+
 Handle<Value>
 nsutil_cpu_times_sync(const Arguments &args)
 {
@@ -765,10 +766,6 @@ nsutil_proc_connections_sync(const Arguments &args)
                 String::New(conn.addr.c_str()));
             conn_obj->Set(String::NewSymbol("raddr"),
                 String::New(conn.caddr.c_str()));
-            /*
-            conn_obj->Set(String::NewSymbol("conn_none"),
-                Integer::New(conn.conn_none));
-                */
         } else if (conn.family == 2 || conn.family == 10) {
             Local<Array> laddr = Array::New();
             laddr->Set(0, String::New(conn.laddr_ip.c_str()));
@@ -778,18 +775,6 @@ nsutil_proc_connections_sync(const Arguments &args)
             raddr->Set(0, String::New(conn.raddr_ip.c_str()));
             raddr->Set(1, Integer::New(conn.raddr_port));
             conn_obj->Set(String::NewSymbol("raddr"), laddr);
-            /*
-            conn_obj->Set(String::NewSymbol("laddr_ip"),
-                String::New(conn.laddr_ip.c_str()));
-            conn_obj->Set(String::NewSymbol("laddr_port"),
-                Integer::New(conn.laddr_port));
-            conn_obj->Set(String::NewSymbol("raddr_ip"),
-                String::New(conn.raddr_ip.c_str()));
-            conn_obj->Set(String::NewSymbol("raddr_port"),
-                Integer::New(conn.raddr_port));
-            conn_obj->Set(String::NewSymbol("state"),
-                Integer::New(conn.state));
-                */
         }
         proc_conn_list_arr->Set(i, conn_obj->Clone());
         i++;

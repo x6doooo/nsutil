@@ -4,6 +4,7 @@
 #include <node.h>
 #include <v8.h>
 #include "nsutil_osx_funcs.h"
+#include "nsutil_osx_funcs_async.h"
 
 void Init(v8::Handle<v8::Object> exports) {
     exports->Set(v8::String::NewSymbol("nsutil_pid_exists_sync"), 
@@ -108,6 +109,16 @@ void Init(v8::Handle<v8::Object> exports) {
     */
     exports->Set(v8::String::NewSymbol("nsutil_users_sync"), 
             v8::FunctionTemplate::New(nsutil_users_sync)->GetFunction());
+
+    // async
+    exports->Set(v8::String::NewSymbol("nsutil_cpu_times_async"), 
+            v8::FunctionTemplate::New(nsutil_cpu_times_async)->GetFunction());
+
+    exports->Set(v8::String::NewSymbol("nsutil_per_cpu_times_async"), 
+            v8::FunctionTemplate::New(nsutil_per_cpu_times_async)->GetFunction());
+
+    
+
 
     /*
     exports->Set(v8::String::NewSymbol("nsutil_"), 
