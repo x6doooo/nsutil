@@ -198,7 +198,7 @@ var ns = require('nsutil')
  '/dev/ttys004'
 
 >>> proc.memoryInfo()   
- { rss: 18440192, vms: 3119169536, faults: 19517440, pageins: 0 }
+ { rss: 18440192, vms: 3119169536 }
 
 >>> proc.cpuTimes()
  { user: 0.139774113, sys: 0.027113125 }

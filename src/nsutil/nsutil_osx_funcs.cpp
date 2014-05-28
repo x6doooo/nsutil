@@ -22,50 +22,6 @@ nsutil_pid_exists_sync(const Arguments &args)
 }
 
 
-/*
-// handle sutil_posix
-Handle<Value>
-nsutil_posix_getpriority_sync(const Arguments &args)
-{
-    HandleScope scope;
-    if (args.Length() == 0) {
-        ThrowException(Exception::TypeError(String::New("Wrong number of arguments")));
-        return scope.Close(Undefined());
-    }
-    if (!args[0]->IsNumber()) {
-        ThrowException(Exception::TypeError(String::New("Wrong arguments")));
-        return scope.Close(Undefined());
-    }
-    int32_t pid = args[0]->Int32Value();
-    int priority;
-    if(sutil_posix_getpriority(pid, priority) == -1) {
-        return scope.Close(Undefined());
-    }
-
-    return scope.Close(Number::New(priority));
-}
-
-Handle<Value>
-nsutil_posix_setpriority_sync(const Arguments &args)
-{
-    HandleScope scope;
-    if (args.Length() != 2) {
-        ThrowException(Exception::TypeError(String::New("Wrong number of arguments")));
-        return scope.Close(Undefined());
-    }
-    if (!args[0]->IsNumber() || !args[1]->IsNumber()) {
-        ThrowException(Exception::TypeError(String::New("Wrong arguments")));
-        return scope.Close(Undefined());
-    }
-    int32_t pid = args[0]->Int32Value();
-    int priority = args[0]->IntegerValue();
-    if(sutil_posix_setpriority(pid, priority) == -1) {
-        ThrowException(Exception::TypeError(String::New("SetPriority Error")));
-    }
-
-    return scope.Close(Undefined());
-}
-*/
 
 // handle sutil_osx
 Handle<Value> 
@@ -431,8 +387,8 @@ nsutil_proc_memory_info_sync(const Arguments &args)
     Local<Object> mem_obj = Object::New(); 
     mem_obj->Set(String::NewSymbol("rss"), Number::New(mem_info[0]));
     mem_obj->Set(String::NewSymbol("vms"), Number::New(mem_info[1]));
-    mem_obj->Set(String::NewSymbol("faults"), Number::New(mem_info[2]));
-    mem_obj->Set(String::NewSymbol("pageins"), Number::New(mem_info[3]));
+    //mem_obj->Set(String::NewSymbol("faults"), Number::New(mem_info[2]));
+    //mem_obj->Set(String::NewSymbol("pageins"), Number::New(mem_info[3]));
     delete[] mem_info;
     mem_info = nullptr;
     return scope.Close(mem_obj);
@@ -671,8 +627,8 @@ nsutil_cpu_times_sync(const Arguments &args)
 
     delete[] cpu_times;
     cpu_times = nullptr;
-    return scope.Close(cpu_obj);
 
+    return scope.Close(cpu_obj);
 }
 
 Handle<Value>

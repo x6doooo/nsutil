@@ -1,4 +1,3 @@
-#define BUILDING_NODE_EXTENSION
 #include <node.h>
 #include <v8.h>
 #include "../sutil/sutil_posix.h"

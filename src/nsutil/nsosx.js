@@ -110,7 +110,7 @@ __proto.memMaps = function() {
 
 var Process = function(pid) {
     return new _process_class_(pid);
-}
+};
 
 
 function swapMemory() {
@@ -119,14 +119,21 @@ function swapMemory() {
     return s_mem;
 }
 
-function cpuTimes() {
-    var t = _osx.nsutil_cpu_times_sync();
+function cpuTimes(cb) {
+
+/*
+    if (cb && typeof cb == 'function') {
+        _osx.nsutil_cpu_times_async(cb);
+        return;
+    }
+*/
+    return _osx.nsutil_cpu_times_sync();
     /*
     for (var k in t) {
         t[k] *= 1000;
     }
     */
-    return t;
+    //return t;
 }
 
 function perCpuTimes() {

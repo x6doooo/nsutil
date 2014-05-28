@@ -549,7 +549,7 @@ sutil_proc_open_files(const int32_t &pid, vector<proc_open_file> &proc_open_file
                 sutil_set_err("RuntimeError: proc_pidinfo(PROC_PIDFDVNODEPATHINFO) failed");
                 goto error;
             }
-            if (nb < sizeof(vi)) {
+            if ((uint32_t)nb < sizeof(vi)) {
                 sutil_set_err("RuntimeError: proc_pidinfo(PROC_PIDFDVNODEPATHINFO) failed (buffer mismatch)");
                 goto error;
             }
@@ -752,7 +752,8 @@ int sutil_per_cpu_times(vector<vector<double>> &per_cpu_times)
     mach_msg_type_number_t info_count;
     kern_return_t error;
     processor_cpu_load_info_data_t *cpu_load_info = NULL;
-    int i, ret;
+    uint8_t i;
+    int ret;
     vector<double> a_cpu(4);
 
     mach_port_t host_port = mach_host_self();
@@ -996,7 +997,7 @@ sutil_proc_connections(const int32_t &pid,
                 }
                 goto error;
             }
-            if (nb < sizeof(si)) {
+            if ((uint32_t)nb < sizeof(si)) {
                 sutil_set_err("RuntimeError: proc_pidinfo(PROC_PIDFDVNODEPATHINFO) failed (buffer mismatch)");
                 goto error;
             }
