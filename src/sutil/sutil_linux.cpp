@@ -230,7 +230,7 @@ sutil_proc_cpu_affinity_set(const int32_t &pid, vector<int32_t> &cpu_set_list)
 {
     cpu_set_t cpu_set;
     size_t len;
-    int i;//, seq_len;
+    size_t i;//, seq_len;
 
     CPU_ZERO(&cpu_set);
     for (i = 0; i < cpu_set_list.size(); i++) {
@@ -280,9 +280,11 @@ sutil_users(vector<sutil_user_info> &user_list)
     endutent();
     return 0;
 
+    /*
 error:
     endutent();
     return -1;
+    */
 }
 
 
@@ -294,6 +296,7 @@ int sutil_sysconf(std::string &which)
     if (which == "SC_PAGE_SIZE") {
         return sysconf(_SC_PAGE_SIZE);
     }
+    return 0;
 }
 
 
