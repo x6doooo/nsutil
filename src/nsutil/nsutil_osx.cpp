@@ -117,6 +117,9 @@ void Init(v8::Handle<v8::Object> exports) {
     exports->Set(v8::String::NewSymbol("nsutil_per_cpu_times_async"), 
             v8::FunctionTemplate::New(nsutil_per_cpu_times_async)->GetFunction());
 
+    exports->Set(v8::String::NewSymbol("nsutil_swap_mem_async"), 
+            v8::FunctionTemplate::New(nsutil_swap_mem_async)->GetFunction());
+
     
 
 

@@ -9,3 +9,6 @@ nsutil_cpu_times_async(const v8::Arguments &args);
 v8::Handle<v8::Value>
 nsutil_per_cpu_times_async(const v8::Arguments &args);
 
+v8::Handle<v8::Value>
+nsutil_swap_mem_async(const v8::Arguments &args);
+

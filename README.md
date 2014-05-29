@@ -48,7 +48,7 @@ var ns = require('nsutil')
 >>> ns.cpuCountLogical()
  4
 
->>> ns.cpuCountPhys()
+>>> ns.cpuCountPhysical()
  2
 
 ```

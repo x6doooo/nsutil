@@ -3,14 +3,11 @@
 using namespace v8;
 using namespace std;
 
-//定义一个结构体，存储异步请求信息
 template<typename T>
 struct Baton {
     Persistent<Function> callback;
-
     bool error;
     std::string error_message;
-        
     T result;
 };
 
@@ -30,11 +27,9 @@ void cpu_times_after(uv_work_t* req) {
     if (baton->error) {
         Local<Value> err = Exception::Error(String::New(baton->error_message.c_str()));
 
-        // 准备回调函数的参数
         const unsigned argc = 1;
         Local<Value> argv[argc] = { err };
 
-        //捕捉回调中的错误，在Node环境中可利用process.on('uncaughtException')捕捉错误 
         TryCatch try_catch;
 
         baton->callback->Call(Context::GetCurrent()->Global(), argc, argv);
@@ -56,7 +51,7 @@ void cpu_times_after(uv_work_t* req) {
 
         Local<Value> argv[argc] = {
             Local<Value>::New(Null()),
-            cpu_obj
+            Local<Value>::New(cpu_obj)
         };
         TryCatch try_catch;
         baton->callback->Call(Context::GetCurrent()->Global(), argc, argv);
@@ -108,6 +103,8 @@ void per_cpu_times(uv_work_t* req) {
     vector<vector<double>> per_cpu_times;
 
     if (sutil_per_cpu_times(per_cpu_times) == -1) {
+        baton->error = true;
+        baton->error_message = "sutil_per_cpu_times error";
     }
 
     baton->result = per_cpu_times;
@@ -120,11 +117,9 @@ void per_cpu_times_after(uv_work_t* req) {
     if (baton->error) {
         Local<Value> err = Exception::Error(String::New(baton->error_message.c_str()));
 
-        // 准备回调函数的参数
         const unsigned argc = 1;
         Local<Value> argv[argc] = { err };
 
-        //捕捉回调中的错误，在Node环境中可利用process.on('uncaughtException')捕捉错误 
         TryCatch try_catch;
 
         baton->callback->Call(Context::GetCurrent()->Global(), argc, argv);
@@ -159,7 +154,7 @@ void per_cpu_times_after(uv_work_t* req) {
 
         Local<Value> argv[argc] = {
             Local<Value>::New(Null()),
-            per_cpu_arr
+            Local<Value>::New(per_cpu_arr)
         };
         TryCatch try_catch;
         baton->callback->Call(Context::GetCurrent()->Global(), argc, argv);
@@ -203,5 +198,102 @@ nsutil_per_cpu_times_async(const Arguments &args)
 
 
 }
+
+void swap_mem(uv_work_t* req) {
+    Baton<uint64_t*>* baton = static_cast<Baton<uint64_t*>*>(req->data);
+
+    uint64_t *swap_mem = new uint64_t[5];
+    if (sutil_swap_mem(swap_mem) == -1) {
+        baton->error = true;
+        baton->error_message = "sutil_swap_mem error";
+    }
+
+    baton->result = swap_mem;
+}
+
+void swap_mem_after(uv_work_t* req) {
+    HandleScope scope;
+    Baton<uint64_t*>* baton = static_cast<Baton<uint64_t*>*>(req->data);
+    if (baton->error) {
+        Local<Value> err = Exception::Error(String::New(baton->error_message.c_str()));
+
+        const unsigned argc = 1;
+        Local<Value> argv[argc] = { err };
+
+        TryCatch try_catch;
+
+        baton->callback->Call(Context::GetCurrent()->Global(), argc, argv);
+        if (try_catch.HasCaught()) {
+            node::FatalException(try_catch);
+        }
+    } else {
+         
+        const unsigned argc = 2;
+
+        Local<Object> swap_obj = Object::New();
+    
+        swap_obj->Set(String::NewSymbol("total"),
+                Number::New(baton->result[0]));
+        swap_obj->Set(String::NewSymbol("used"),
+                Number::New(baton->result[1]));
+        swap_obj->Set(String::NewSymbol("free"),
+                Number::New(baton->result[2]));
+        swap_obj->Set(String::NewSymbol("sin"),
+                Number::New(baton->result[3]));
+        swap_obj->Set(String::NewSymbol("sout"),
+                Number::New(baton->result[4]));
+
+
+        Local<Value> argv[argc] = {
+            Local<Value>::New(Null()),
+            Local<Value>::New(swap_obj)
+        };
+        TryCatch try_catch;
+        baton->callback->Call(Context::GetCurrent()->Global(), argc, argv);
+        if (try_catch.HasCaught()) {
+            node::FatalException(try_catch);
+        }
+    }
+    //释放
+    baton->callback.Dispose();
+    delete[] baton->result;
+    delete baton;
+    delete req;
+}
+
+
+Handle<Value>
+nsutil_swap_mem_async(const Arguments &args)
+{
+    HandleScope scope;
+    if (args.Length() != 1) {
+        ThrowException(Exception::TypeError(String::New("Wrong number of arguments")));
+        return Undefined();
+    }
+
+    if (!args[0]->IsFunction()) {
+        ThrowException(Exception::TypeError(String::New("Wrong arguments")));
+        return Undefined();
+    }
+
+    Local<Function> callback = Local<Function>::Cast(args[0]);
+   
+    Baton<uint64_t*>* baton = new Baton<uint64_t*>();
+    baton->error = false;
+    baton->callback = Persistent<Function>::New(callback);
+        
+    uv_work_t *req = new uv_work_t();
+    req->data = baton;
+    
+    int status = uv_queue_work(uv_default_loop(), req, swap_mem,
+                               (uv_after_work_cb)swap_mem_after);
+    assert(status == 0);
+    return Undefined();
+}
+
+
+
+
+
 
 

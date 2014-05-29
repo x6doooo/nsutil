@@ -11,8 +11,9 @@ var CLOCK_TICKS = _linux.nsutil_sysconf('SC_CLK_TCK');
 var PAGE_SIZE = _linux.nsutil_sysconf('SC_PAGE_SIZE');
 var BOOT_TIME = null;
 
-function getCputimesFields() {
-    var f = fs.readFileSync('/proc/stat', 'utf8');
+var encoding = 'utf8';
+
+function __getCputimesFields_handle(f) {
     var values = f.split(/\n(?!$)/);
     var fields = ['user', 'nice', 'system', 'idle', 'iowait', 'irq', 'softirq'];
     var vlen = values.length;
@@ -31,13 +32,23 @@ function getCputimesFields() {
     return fields;
 }
 
+function getCputimesFields(cb) {
+    var file = '/proc/stat';
+    if (cb && typeof cb == 'function') {
+        fs.readFile(file, encoding, function(err, data) {
+            var fields = __getCputimesFields_handle(data);
+            cb(fields);
+        });
+        return;
+    }
+    var f = fs.readFileSync(file, fileEncoding);
+    return __getCputimesFields_handle(f);
+}
+
 var cpuTimesFields = getCputimesFields();
 
-function virtualMemory() {
-
-    var sysinfo = _linux.nsutil_sysinfo();
-    var f = fs.readFileSync('/proc/meminfo', 'utf8');
-    var lines = f.split(/\n(?!$)/);
+function __virtualMemory_handle(data) {
+    var lines = data.split(/\n(?!$)/);
     var cached;
     var active;
     var inactive;
@@ -66,6 +77,30 @@ function virtualMemory() {
         buffers: sysinfo.buffer,   // phymem buffers
         cached: cached //phymem cached
     };
+}
+
+function virtualMemory(cb) {
+
+    var sysinfo = _linux.nsutil_sysinfo();
+
+    var file = '/proc/meminfo';
+
+    if (cb && typeof cb == 'function') {
+        
+        fs.readFile(file, encoding, function(err, data) {
+            if (err) {
+                cb (err, null);
+                return;
+            }
+            var r = __virtualMemory_handle(data);
+            cb(null, r);
+        });
+
+        return;
+    }
+
+    var f = fs.readFileSync(file, encoding);
+    return __virtualMemory_handle(f);
     
 }
 
