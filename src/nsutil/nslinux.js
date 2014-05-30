@@ -13,6 +13,31 @@ var BOOT_TIME = null;
 
 var encoding = 'utf8';
 
+// 部分接口的异步和同步调用处理方式相同
+// 此处统一处理
+function _async_and_sync_get_handle_(file, method, contentHandle, cb) {
+    if (cb && typeof cb == 'function') {
+        // readFile、readdir、readlink的参数不同，区分处理
+        var args = [file];
+        if (method == 'readFile') {
+            args.push(encoding);
+        }
+        args.push(function(err, data) {
+            if (err) {
+                cb(err);
+                return;
+            }
+            var r = contentHandle(data);
+            cb(null, r);
+        });
+        fs[method].apply(null, args);
+        return;
+    }
+    // TODO: 异常处理
+    var r = fs[method + 'Sync'](file, encoding);
+    return contentHandle(r);
+}
+
 function __getCputimesFields_handle(f) {
     var values = f.split(/\n(?!$)/);
     var fields = ['user', 'nice', 'system', 'idle', 'iowait', 'irq', 'softirq'];
@@ -34,6 +59,8 @@ function __getCputimesFields_handle(f) {
 
 function getCputimesFields(cb) {
     var file = '/proc/stat';
+    return _async_and_sync_get_handle_(file, 'readFile', __getCputimesFields_handle, cb);
+    /*
     if (cb && typeof cb == 'function') {
         fs.readFile(file, encoding, function(err, data) {
             var fields = __getCputimesFields_handle(data);
@@ -41,13 +68,15 @@ function getCputimesFields(cb) {
         });
         return;
     }
-    var f = fs.readFileSync(file, fileEncoding);
+    var f = fs.readFileSync(file, encoding);
     return __getCputimesFields_handle(f);
+    */
 }
 
 var cpuTimesFields = getCputimesFields();
 
 function __virtualMemory_handle(data) {
+    var sysinfo = _linux.nsutil_sysinfo();
     var lines = data.split(/\n(?!$)/);
     var cached;
     var active;
@@ -79,36 +108,19 @@ function __virtualMemory_handle(data) {
     };
 }
 
+/**
+ *  virtualMemory
+ */
 function virtualMemory(cb) {
 
-    var sysinfo = _linux.nsutil_sysinfo();
-
     var file = '/proc/meminfo';
+    return _async_and_sync_get_handle_(file, 'readFile', __virtualMemory_handle, cb);
 
-    if (cb && typeof cb == 'function') {
-        
-        fs.readFile(file, encoding, function(err, data) {
-            if (err) {
-                cb (err, null);
-                return;
-            }
-            var r = __virtualMemory_handle(data);
-            cb(null, r);
-        });
-
-        return;
-    }
-
-    var f = fs.readFileSync(file, encoding);
-    return __virtualMemory_handle(f);
-    
 }
 
-function swapMemory() {
+function __swapMemory_handle(f) {
     var sysinfo = _linux.nsutil_sysinfo();
     var used = sysinfo.total - sysinfo.free;
-    var percent = _common.usagePercent(used, sysinfo.total, 2);
-    var f = fs.readFileSync('/proc/vmstat', 'utf8');
     var lines = f.split(/\n(?!$)/);
     var pswpin;
     var pswpout;
@@ -124,14 +136,35 @@ function swapMemory() {
         total: sysinfo.total,
         used: used,
         free: sysinfo.free,
-        //percent: percent,
         sin: pswpin,
         sout: pswpout
     };
 }
 
-function cpuTimes() {
-    var f = fs.readFileSync('/proc/stat', 'utf8');
+function swapMemory(cb) {
+    var file = '/proc/vmstat';
+    //var percent = _common.usagePercent(used, sysinfo.total, 2);
+    return _async_and_sync_get_handle_(file, 'readFile', __swapMemory_handle, cb);
+   /* 
+    if (cb && typeof cb == 'function') {
+        fs.readFile(file, encoding, function(err, data) {
+            if (err) {
+                cb (err, null);
+                return;
+            }
+            var r = __swapMemory_handle(data);
+            cb(null, r);
+        });
+        return;
+    }
+
+    var f = fs.readFileSync(file, encoding);
+    var r = __swapMemory_handle(f);
+    return r;
+    */
+}
+
+function __cpuTimes_handle(f) {
     var the_line = f.split(/\n/)[0].split(/\s+/);
     var obj = {}; 
     var needs = ['user', 'system', 'nice', 'idle'];
@@ -142,8 +175,32 @@ function cpuTimes() {
     });
     return obj;
 }
-function perCpuTimes() {
-    var f = fs.readFileSync('/proc/stat', 'utf8');
+
+function cpuTimes(cb) {
+
+    var file = '/proc/stat';
+    return _async_and_sync_get_handle_(file, 'readFile', __cpuTimes_handle, cb);
+
+/*
+    if (cb && typeof cb == 'function') {
+        fs.readFile(file, encoding, function(err, data) {
+            if (err) {
+                cb(err, null);
+                return;
+            }
+            var r = __cpuTimes_handle(data);
+            cb(null, r);
+        });
+        return;
+    }
+
+    var f = fs.readFileSync(file, encoding);
+    return __cpuTimes_handle(f);
+    */
+}
+
+
+function __perCpuTimes_handle(f) {
     var lines = f.split(/\n(?!$)/);
     var cpus = [];
     var ln;
@@ -164,17 +221,70 @@ function perCpuTimes() {
     }
     return cpus;
 }
-function cpuCountLogical() {
-    var f = fs.readFileSync('/proc/cpuinfo', 'utf8');
+
+function perCpuTimes(cb) {
+
+    var file = '/proc/stat';
+    return _async_and_sync_get_handle_(file, 'readFile', __perCpuTimes_handle, cb);
+
+/*
+    if (cb && typeof cb == 'function') {
+        fs.readFile(file, encoding, function(err, data) {
+            if (err) {
+                cb(err, null);
+                return;
+            }
+            var r = __perCpuTimes_handle(data);
+            cb(null, r);
+        });
+        return;
+    }
+
+    var f = fs.readFileSync(file, encoding);
+    return __perCpuTimes_handle(f);
+    */
+}
+
+
+function cpuCountLogical(cb) {
+
+    var file_cpuinfo = '/proc/cpuinfo';
+    var file_stat = '/proc/stat';
+
+    if (cb && typeof cb == 'function') {
+        fs.readFile(file_cpuinfo, encoding, function(err, data) {
+            if (err) {
+                cb(err, null);
+                return;
+            }
+            var n = data.match(/processor/gi) || [];
+            if (n.length != 0) {
+                cb (null, n.length);
+                return;
+            }
+            fs.readFile(file_stat, encoding, function(err, data) {
+                if (err) {
+                    cb(err, null);
+                    return;
+                }
+                n = data.match(/cpu\d/g) || [];
+                cb(null, n.length);
+            });
+        }); 
+        return;
+    }
+
+    var f = fs.readFileSync(file_cpuinfo, encoding);
     var n = f.match(/processor/gi) || [];
     if (n.length == 0) {
-        f = fs.readFileSync('/proc/stat', 'utf8');
+        f = fs.readFileSync(file_stat, encoding);
         n = f.match(/cpu\d/g) || [];
     }
     return n.length;
 }
-function cpuCountPhysical() {
-    var f = fs.readFileSync('/proc/cpuinfo', 'utf8');
+
+
+function __cpuCountPhysical_handle(f) {
     var n = f.match(/physical\sid\s*\:\s*\d+/gi);
     var o = {};
     var len = 0;
@@ -188,10 +298,35 @@ function cpuCountPhysical() {
     }
     return len;
 }
-function users() {
-    var users = _linux.nsutil_users();
+
+function cpuCountPhysical(cb) {
+    var file = '/proc/cpuinfo';
+    return _async_and_sync_get_handle_(file, 'readFile', __cpuCountPhysical_handle, cb);
+
+/*
+    if (cb && typeof cb == 'function') {
+        fs.readFile(file, encoding, function(err, data) {
+            if (err) {
+                cb(err, null);
+                return;
+            }
+            var r = __cpuCountPhysical_handle(data);
+            cb(null, r);
+        });
+        return;
+    }
+
+    var f = fs.readFileSync(file, encoding);
+    return __cpuCountPhysical_handle(f);
+    */
+}
+
+
+// 伪异步
+function users(cb) {
+    var _users = _linux.nsutil_users();
     var ret = [];
-    users.forEach(function(v) {
+    _users.forEach(function(v) {
         if (v.user_proc) {
             if (v.hostname == ':0.0') {
                 v.hostname = 'localhost';
@@ -204,10 +339,15 @@ function users() {
             });
         }
     });
+
+    if (cb && typeof cb == 'function') {
+        cb(null, ret);
+        return;
+    }
     return ret;
 }
-function bootTime() {
-    var f = fs.readFileSync('/proc/stat', 'utf8');
+
+function __bootTime_handle(f) {
     var t = f.match(/btime\s*(\d+)/gi);
     if (t) {
         t = +t[0].replace(/\D/g, '');
@@ -215,8 +355,29 @@ function bootTime() {
     BOOT_TIME = t;
     return t * 1000;
 }
-function pids() {
-    var f = fs.readdirSync('/proc');
+
+function bootTime(cb) {
+    var file = '/proc/stat';
+    return _async_and_sync_get_handle_(file, 'readFile', __bootTime_handle, cb);
+    /*
+    if (cb && typeof cb == 'function') {
+        fs.readFile(file, encoding, function(err, data) {
+            if (err) {
+                cb(err, null);
+                return;
+            }
+            var r = __bootTime_handle(data);
+            cb(null, r);
+        });
+        return;
+    }
+    var f = fs.readFileSync(file, encoding);
+    return __bootTime_handle(f);
+    */
+}
+
+
+function __pids_handle(f) {
     var s = [];
     f.forEach(function(v) {
         v = +v;
@@ -224,14 +385,42 @@ function pids() {
             s.push(v);
         }
     });
+    s.sort(function(a, b) {
+        return b - a;
+    });
     return s;
 }
-function pidExists(pid) {
-    return _linux.nsutil_pid_exists(pid);
+
+function pids(cb) {
+    var dir = '/proc';
+    return _async_and_sync_get_handle_(dir, 'readdir', __pids_handle, cb);
+
+/*
+    if (cb && typeof cb == 'function') {
+        fs.readdir(dir, function(err, data) {
+            if (err) {
+                cb(err, null);
+                return;
+            }
+            var r = __pids_handle(data);
+            cb(null, r);
+        });
+    }
+
+    var f = fs.readdirSync(dir);
+    return __pids_handle(f);
+    */
 }
 
-//var Connections = {};
-//var cpro = {}
+function pidExists(pid, cb) {
+    var r = _linux.nsutil_pid_exists(pid);
+    if (cb && typeof cb == 'function') {
+        cb(null, r);
+        return;
+    }
+    return r;
+}
+
 function get_proc_inodes(pid, inodes) {
     var fds = fs.readdirSync('/proc/' + pid + '/fd');
     var inode;
@@ -452,13 +641,35 @@ function retrieve(kind, pid) {
     return ret;
 }
 
-function net_connections(kind) {
+// 伪异步
+function net_connections(/*kind, cb*/) {
+    var kind;
+    var cb;
+    if (arguments.length == 1) {
+    
+        if (typeof arguments[0] == 'string') {
+            kind = arguments[0];
+        }
+
+        if (typeof arguments[0] == 'function') {
+            cb = arguments[0];
+        }
+
+    } else if (arguments.length == 2) {
+        kind = arguments[0];
+        cb = arguments[1];
+    }
+
     kind = kind || 'inet';
-    return retrieve(kind);
+    var r = retrieve(kind);
+    if (cb) {
+        cb(null, r);
+        return;
+    }
+    return r;
 }
 
-function net_io_counters() {
-    var f = fs.readFileSync('/proc/net/dev', 'utf8');
+function __net_io_counters_handle(f) {
     f = f.split(/\n(?!$)/);
     var line;
     var ret = {};
@@ -478,12 +689,31 @@ function net_io_counters() {
     return ret;
 }
 
-function disk_io_counters() {
-    var sector_size = 512;
+function net_io_counters(cb) {
+    var file = '/proc/net/dev';
+    return _async_and_sync_get_handle_(file, 'readFile', __net_io_counters_handle, cb);
+/*
+    if (cb && typeof cb == 'function') {
+        fs.readFile(file, encoding, function(err, data) {
+            if (err) {
+                cb(err, null);
+                return;
+            }
+            var r = __net_io_counters_handle(data);
+            cb(null, r);
+        });
+        return;
+    }
+
+    var f = fs.readFileSync(file, encoding);
+    return __net_io_counters_handle(f);
+    */
+}
+
+function __disk_io_counters_handle_1(f) {
+    f = f.split(/\n(?!$)/).reverse();
     var partitions = {};
     var lastName;
-    var f = fs.readFileSync('/proc/partitions', 'utf8');
-    f = f.split(/\n(?!$)/).reverse();
     var line;
     var name;
     for (var i = 0, len = f.length - 2; i < len; i++) {
@@ -498,10 +728,13 @@ function disk_io_counters() {
             }
         }
     }
-    var ret = {};
-    f = fs.readFileSync('/proc/diskstats', 'utf8');
+    return partitions;
+}
+function __disk_io_counters_handle_2(f, partitions) {
     f = f.split(/\n(?!$)/);
     var name;
+    var ret = {};
+    var sector_size = 512;
     f.forEach(function(line) {
         line = line.trim().split(/\s+/);
         name = line[2];
@@ -509,19 +742,49 @@ function disk_io_counters() {
             ret[name] = {
                 reads: +line[3],
                 writes: +line[7],
-                read_bytes: +line[5],
-                write_bytes: +line[9],
+                read_bytes: +line[5] * sector_size,
+                write_bytes: +line[9] * sector_size,
                 read_time: +line[6],
                 write_time: +line[10]
-            }
+            };
         }
     });
     return ret;
 }
 
-function diskPartitions(all) {
+function disk_io_counters(cb) {
+
+    var file_1 = '/proc/partitions';
+    var file_2 = '/proc/diskstats';
+
+    if (cb && typeof cb == 'function') {
+        fs.readFile(file_1, encoding, function(err, data) {
+            if (err) {
+                cb(err, null);
+                return;
+            }
+            var partitions = __disk_io_counters_handle_1(data);
+            fs.readFile(file_2, encoding, function(err2, data2) {
+                if (err2) {
+                    cb(err2, null);
+                    return;
+                }
+                var r = __disk_io_counters_handle_2(data2, partitions);
+                cb(null, r);
+            });
+        }); 
+        return;
+    }
+
+    var f = fs.readFileSync(file_1, encoding);
+    var partitions = __disk_io_counters_handle_1(f);
+    //console.log(partitions);
+    f = fs.readFileSync(file_2, encoding);
+    return __disk_io_counters_handle_2(f, partitions);
+}
+
+function __diskPartitions_handle(f) {
     var phydevs = {};
-    var f = fs.readFileSync('/proc/filesystems', 'utf8');
     f = f.split(/\n(?!$)/);
     f.forEach(function(line) {
         if (line.indexOf('nodev') < 0) {
@@ -538,10 +801,30 @@ function diskPartitions(all) {
                 fs_type: pt.fstype,
                 mount_point: pt.mountpoint,
                 options: pt.opts
-            })
+            });
         }
     });
     return ret;
+}
+function diskPartitions(cb) {
+    var file = '/proc/filesystems';
+    return _async_and_sync_get_handle_(file, 'readFile', __diskPartitions_handle, cb);
+   /* 
+    if (cb && typeof cb == 'function') {
+        fs.readFile(file, encoding, function(err, data) {
+            if (err) {
+                cb(err);
+                return;
+            }
+            var r = __diskPartitions_handle(data);
+            cb(null, r);
+        });
+        return;
+    }
+
+    var f = fs.readFileSync(file, encoding);
+    return __diskPartitions_handle(f);
+    */
 }
 
 var __class_proc__ = function(pid) {
@@ -553,54 +836,148 @@ var Process = function(pid) {
 };
 
 var proto = __class_proc__.prototype;
-proto.name = function() {
+
+function __proto_name_handle(f) {
+    return f.trim().split(/\s+/)[1].replace(/\(|\)/g, '');
+}
+proto.name = function(cb) {
     var self = this;
     var fname = '/proc/' + self.pid + '/stat';
-    var f = fs.readFileSync(fname, 'utf8');
-    return f.trim().split(/\s+/)[1].replace(/\(|\)/g, '');
+    
+    return _async_and_sync_get_handle_(fname, 'readFile', __proto_name_handle, cb);
+    /*
+    if (cb && typeof cb == 'function') {
+        fs.readFile(fname, encoding, function(err, data) {
+            if (err) {
+                cb(err);
+                return;
+            }
+            var r = __proto_name_handle(data);
+            cb(null, r);
+        });
+        return;
+    }
+
+    var f = fs.readFileSync(fname, encoding);
+    return __proto_name_handle(f);
+    */
 };
-proto.exe = function() {
+
+function __proto_exe_handle(_exe) {
+    _exe = _exe.split('\x00')[0];
+    if (_exe.indexOf(' (deleted)') >= 0 && !fs.existsSync(_exe)) {
+        _exe = _exe.replace(' (deleted)', '');
+    }
+    return _exe;
+}
+proto.exe = function(cb) {
     var self = this;
     var basePath = '/proc/' + self.pid;
     var path = basePath + '/exe';
+
+    if (cb && typeof cb == 'function') {
+        fs.readlink(path, function(err, data) {
+            if (err) {
+                fs.readdir(basePath, function(err, data) {
+                    if (err) {
+                        cb(err);
+                        return;
+                    }
+                    cb(null, '');
+                });
+                return;
+            }
+            var _exe = __proto_exe_handle(data);
+            cb(null, _exe);
+        });
+        return;
+    }
+
+    var _exe;
     if (fs.existsSync(path)) {
-        var exe = fs.readlinkSync(path);
+        _exe = fs.readlinkSync(path);
     } else {
         if (fs.existsSync(basePath)) {
             return '';
         }
         throw "[err] no such process " + self.pid;
     }
-    exe = exe.split('\x00')[0];
-    if (exe.indexOf(' (deleted)') >= 0 && !fs.existsSync(exe)) {
-        exe = exe.replace(' (deleted)', '');
-    }
-    return exe;
+    return __proto_exe_handle(_exe);
 };
-proto.cmdline = function() {
-    var self = this;
-    var fname = '/proc/' + self.pid + '/cmdline';
-    var f = fs.readFileSync(fname, 'utf8');
+
+function __proto_cmdline_handle(f) {
     f = f.split('\x00').filter(function(v) {
         return v != '';
     });
     return f;
-};
-proto.terminal = function() {
+}
+proto.cmdline = function(cb) {
     var self = this;
+    var fname = '/proc/' + self.pid + '/cmdline';
+    return _async_and_sync_get_handle_(fname, 'readFile', __proto_cmdline_handle, cb);
+   /* 
+    if (cb && typeof cb == 'function') {
+        fs.readFile(fname, encoding, function(err, data) {
+            if (err) {
+                cb(err);
+                return;
+            }
+            var r = __proto_cmdline_handle(data);
+            cb(null, r);
+        });
+        return;
+    }
+
+    var f = fs.readFileSync(fname, encoding);
+    return __proto_cmdline_handle(f);
+    */
+};
+
+
+// 异步接口同时调用两个异步操作
+// 用计数方式判断两个异步都结束后，再执行回调
+function __proto_terminal_handle(tm, fc, cb) {
+    if (!tm || !fc) return;
+    var ttynr = fc.split(' ')[6];
+    cb(null, tm[ttynr]);
+}
+
+proto.terminal = function(cb) {
+    var self = this;
+    var file = '/proc/' + self.pid + '/stat';
+
+    if (cb && typeof cb == 'function') {
+
+        var tm;
+        var fc;
+        _posix.getTerminalMap(function(err, data) {
+            if (err) {
+                cb(err);
+                return;
+            }
+            tm = data;
+            __proto_terminal_handle(tm, fc, cb);
+        });
+        fs.readFile(file, encoding, function(err, data) {
+            if (err) {
+                cb(err);
+                return;
+            }
+            fc = data;
+            __proto_terminal_handle(tm, fc, cb);
+        });
+    
+        return;
+    }
+
     var tmap = _posix.getTerminalMap();
-    var f = fs.readFileSync('/proc/' + self.pid + '/stat', 'utf8');
+    var f = fs.readFileSync(file, encoding);
     var tty_nr = f.split(' ')[6];
     return tmap[tty_nr];
 };
-proto.ioCounters = function() {
-    var self = this;
-    var fname = '/proc/' + self.pid + '/io';
-    if (!fs.existsSync(fname)) {
-        throw 'couldn\'t find ' + fname + ' (kernel too old?)';
-        return;
-    }
-    var f = fs.readFileSync(fname, 'utf8');
+
+
+function __proto_ioCounters_handle(f) {
     f = f.split(/\n/);
     var ret = {};
     f.forEach(function(line) {
@@ -618,46 +995,120 @@ proto.ioCounters = function() {
         }
     });
     return ret;
+}
+proto.ioCounters = function(cb) {
+    var self = this;
+    var fname = '/proc/' + self.pid + '/io';
+    if (!fs.existsSync(fname)) {
+        throw 'couldn\'t find ' + fname + ' (kernel too old?)';
+    }
+
+    return _async_and_sync_get_handle_(fname, 'readFile', __proto_ioCounters_handle, cb);
+    /*
+    if (cb && typeof cb == 'function') {
+        fs.readFile(fname, encoding, function(err, data) {
+            if (err) {
+                cb(err);
+                return;
+            }
+            var r = __proto_ioCounters_handle(data);
+            cb(null, r);
+        });
+        return;
+    }
+
+    var f = fs.readFileSync(fname, encoding);
+    return __proto_ioCounters_handle(f);
+    */
 };
 
-proto.cpuTimes = function() {
-    var self = this;
-    var f = fs.readFileSync('/proc/' + self.pid + '/stat', 'utf8');
+function __proto_cpuTimes_handle(f) {
     f = f.trim().split(/\s+/);
     return {
         utime: f[13] / CLOCK_TICKS,
         stime: f[14] / CLOCK_TICKS
     };
+}
+proto.cpuTimes = function(cb) {
+    var self = this;
+    var file = '/proc/' + self.pid + '/stat';
+    return _async_and_sync_get_handle_(file, 'readFile', __proto_cpuTimes_handle, cb);
+    /*
+    if (cb && typeof cb == 'function') {
+        fs.readFile(file, encoding, function(err, data) {
+            if (err) {
+                cb(err);
+                return;
+            }
+            var r = __proto_cpuTimes_handle(data);
+            cb(null, r);
+        });
+        return;
+    }
+    var f = fs.readFileSync(file, encoding);
+    return __proto_cpuTimes_handle(f);
+    */
 };
 
 //TODO: proto.wait (like: psutil.Process.wait)
 
-proto.createTime = function() {
-    var self = this;
-    var f = fs.readFileSync('/proc/' + self.pid + '/stat', 'utf8');
+function __proto_createTime_handle(f) {
     f = f.trim().split(/\s+/)[21];
     f = f / CLOCK_TICKS + (BOOT_TIME || bootTime());
     return f * 1000;
+}
+proto.createTime = function(cb) {
+    var self = this;
+    var file = '/proc/' + self.pid + '/stat';
+    return _async_and_sync_get_handle_(file, 'readFile', __proto_cpuTimes_handle, cb);
+   /* 
+    if (cb && typeof cb == 'function') {
+        fs.readFile(file, encoding, function(err, data) {
+            if (err) {
+                cb(err);
+                return;
+            }
+            var r = __proto_createTime_handle(data);
+            cb(null, r);
+        });
+        return;
+    }
+
+    var f = fs.readFileSync(file, encoding);
+    return __proto_createTime_handle(f);
+    */
 };
 
-proto.memoryInfo = function() {
-    var self = this;
-    var f = fs.readFileSync('/proc/' + self.pid + '/statm', 'utf8');
+function __proto_memoryInfo_handle(f) {
     f = f.split(/\s+/);
     return {
         rss: f[1] * PAGE_SIZE,
         vms: f[0] * PAGE_SIZE
     };
-};  
-
-proto.memMaps = function() {
+}
+proto.memoryInfo = function(cb) {
     var self = this;
-    var fname = '/proc/' + self.pid + '/smaps';
-    if (!fs.existsSync(fname)) {
+    var file = '/proc/' + self.pid + '/statm';
+    return _async_and_sync_get_handle_(file, 'readFile', __proto_memoryInfo_handle, cb);
+/*
+    if (cb && typeof cb == 'function') {
+        fs.readFile(file, encoding, function(err, data) {
+            if (err) {
+                cb(err);
+                return;
+            }
+            var r = __proto_memoryInfo_handle(data);
+            cb(null, r);
+        });
         return;
     }
-    var f = fs.readFileSync(fname, 'utf8');
 
+    var f = fs.readFileSync(file, encoding);
+    return __proto_memoryInfo_handle(f);
+    */
+};  
+
+function __proto_memMaps_handle(f) {
     f = f.split(/\n/);
     
     var line;
@@ -680,17 +1131,57 @@ proto.memMaps = function() {
         tem[line[0].replace(':', '')] = line[1] * 1024;
     }
     return arr;
+}
+proto.memMaps = function(cb) {
+    var self = this;
+    var fname = '/proc/' + self.pid + '/smaps';
+    return _async_and_sync_get_handle_(fname, 'readFile', __proto_memMaps_handle, cb);
+/*
+    if (cb && typeof cb == 'function') {
+        fs.readFile(fname, encoding, function(err, data) {
+            if (err) {
+                cb(err);
+                return;
+            }
+            var r = __proto_memMaps_handle(data);
+            cb(null, data);
+        });
+        return;
+    }
+
+    if (!fs.existsSync(fname)) {
+        return;
+    }
+    var f = fs.readFileSync(fname, encoding);
+    return __proto_memMaps_handle(f);
+    */
 };
 
-proto.cwd = function() {
-    var self = this;
-    var f = fs.readlinkSync('/proc/' + self.pid + '/cwd', 'utf8');
+function __proto_cwd_handle(f) {
     return f.replace('\x00', '');
+}
+proto.cwd = function(cb) {
+    var self = this;
+    var path = '/proc/' + self.pid + '/cwd';
+    return _async_and_sync_get_handle_(path, 'readlink', __proto_cwd_handle, cb);
+    /*
+    if (cb && typeof cb == 'function') {
+        fs.readlink(path, function(err, data) {
+            if (err) {
+                cb(err);
+                return;
+            }
+            var r = __proto_cwd_handle(data);
+            cb(null, r);
+        });
+        return;
+    }
+    var f = fs.readlinkSync(path);
+    return __proto_cwd_handle(f);
+    */
 };
 
-proto.numCtxSwitches = function() {
-    var self = this;
-    var f = fs.readFileSync('/proc/' + self.pid + '/status', 'utf8');
+function __proto_numCtxSwitches_handle(f) {
     f = f.split(/\n/);
     var ret = {};
     f.forEach(function(v) {
@@ -702,11 +1193,28 @@ proto.numCtxSwitches = function() {
 
     });
     return ret;
+}
+proto.numCtxSwitches = function(cb) {
+    var self = this;
+    var file = '/proc/' + self.pid + '/status';
+    return _async_and_sync_get_handle_(file, 'readFile', __proto_numCtxSwitches_handle, cb);
+    /*
+    if (cb && typeof cb == 'function') {
+        fs.readFile(file, encoding, function(err, data) {
+            if (err) {
+                cb(err);
+                return;
+            }
+            var r = __proto_numCtxSwitches_handle(data);
+            cb(null, r);
+        });
+        return;
+    }
+    var f = fs.readFileSync(file, encoding);
+    return __proto_numCtxSwitches_handle(f);*/
 };
 
-proto.numThreads = function() {
-    var self = this;
-    var f = fs.readFileSync('/proc/' + self.pid + '/status', 'utf8');
+function __proto_numThreads_handle(f) {
     f = f.split(/\n/);
     var ret;
     f.forEach(function(v) {
@@ -715,17 +1223,70 @@ proto.numThreads = function() {
         }
     });
     return ret;
+}
+proto.numThreads = function(cb) {
+    var self = this;
+    var file = '/proc/' + self.pid + '/status';
+    return _async_and_sync_get_handle_(file, 'readFile', __proto_numThreads_handle, cb);
+    /*
+    if (cb && typeof cb == 'function') {
+        fs.readFile(file, encoding, function(err, data) {
+            if (err) {
+                cb(err);
+                return;
+            }
+            var r = __proto_numThreads_handle(data);
+            cb(null, r);
+        });
+        return;
+    }
+
+    var f = fs.readFileSync(file, encoding);
+    return __proto_numThreads_handle(f);
+    */
 };
 
-proto.threads = function() {
+proto.threads = function(cb) {
     var self = this;
-    var ids = fs.readdirSync('/proc/' + self.pid + '/task');
+
+    var dir = '/proc/' + self.pid + '/task';
+
+    if (cb && typeof cb == 'function') {
+        fs.readdir(dir, function(err, ids) {
+            if (err) {
+                cb(err);
+                return;
+            }
+            var count = ids.length;
+            var arr = [];
+            ids.forEach(function(v) {
+                fs.readFile(dir + '/' + v + '/stat', encoding, function(err2, data) {
+                    if (err2) {
+                        err = err2;
+                    } else {
+                        data = data.trim().split(/\s+/);
+                        arr.push({
+                            idx: v * 1,
+                            user: data[13] * 1,
+                            sys: data[14] * 1
+                        });
+                    }
+                    if (0 == --count) {
+                        cb(err, arr);
+                    }
+                });
+            });
+        });
+        return;
+    }
+
+    var ids = fs.readdirSync(dir);
     ids.sort(function(a, b) {
         return a - b;
     });
     var arr = [];
     ids.forEach(function(v) {
-        var f = fs.readFileSync('/proc/' + self.pid + '/task/' + v + '/stat', 'utf8');
+        var f = fs.readFileSync(dir + '/' + v + '/stat', encoding);
         f = f.trim().split(/\s+/);
         arr.push({
             idx: v * 1,
@@ -736,11 +1297,21 @@ proto.threads = function() {
     return arr;
 };
 
-proto.getNice = function() {
-    return _posix.getPriority(this.pid);
+proto.getNice = function(cb) {
+    var r = _posix.getPriority(this.pid);
+    if (cb && typeof cb == 'function') {
+        cb(null, r);
+        return;
+    }
+    return r;
 };
-proto.setNice = function(nice) {
-    return _posix.setPriority(this.pid, nice);
+proto.setNice = function(nice, cb) {
+    var r = _posix.setPriority(this.pid, nice);
+    if (cb && typeof cb == 'function') {
+        cb(null, r);
+        return;
+    }
+    return r;
 };
 
 /* TODO
@@ -753,19 +1324,60 @@ proto.setNice = function(nice) {
  *
  * */
 
-proto.status = function() {
-    var self = this;
-    var f = fs.readFileSync('/proc/' + self.pid + '/status', 'utf8');
+function __proto_status_handle(f) {
     f = f.match(/State\:\s+[A-Z]/g);
     f = f[0].replace(/State\:\s+/, '');
     return _common.PROC_STATUSES_LINUX[f];
+}
+proto.status = function(cb) {
+    var self = this;
+    var file = '/proc/' + self.pid + '/status';
+    return _async_and_sync_get_handle_(file, 'readFile', __proto_status_handle, cb);
+    /*
+    if (cb && typeof cb == 'function') {
+        fs.readFile(file, encoding, function(err, data) {
+            if (err) {
+                cb(err);
+                return;
+            }
+            var r = __proto_status_handle(data);
+            cb(null, r);
+        });
+        return;
+    }
+    var f = fs.readFileSync(file, encoding);
+    return __proto_status_handle(f);
+    */
 };
 
-proto.openFiles = function() {
+proto.openFiles = function(cb) {
     var self = this;
-    var path = '/proc/' + self.pid + '/fd'
-    var f = fs.readdirSync(path);
+    var path = '/proc/' + self.pid + '/fd';
     var arr = [];
+
+    if (cb && typeof cb == 'function') {
+        fs.readdir(path, function(err, files) {
+            if (err) {
+                cb(err);
+                return;
+            }
+            var count = files.length;
+            files.forEach(function(v) {
+                var link = path + '/' + v;
+                fs.readlink(link, function(err2, data) {
+                    if (!err2 && data.indexOf('/') >= 0 && fs.statSync(data).isFile) {
+                        arr.push(data);
+                    }
+                    if (0 == --count) {
+                        cb(null, arr);
+                    }
+                });
+            });
+        });
+        return;
+    }
+
+    var f = fs.readdirSync(path);
     f.forEach(function(v) {
         var file = path + '/' + v;
         if (fs.existsSync(file)) {
@@ -778,25 +1390,78 @@ proto.openFiles = function() {
     return arr;
 };
 
-proto.connections = function(kind) {
+proto.connections = function(/*kind, cb*/) {
+    var kind;
+    var cb;
+
+    if (arguments.length == 1) {
+        if (typeof arguments[0] == 'string') {
+            kind = arguments[0]
+        }
+        if (typeof arguments[0] == 'function') {
+            cb = arguments[0];
+        }
+    }
+    if (arguments.length == 2) {
+        kind = arguments[0];
+        cb = arguments[1];
+    }
+
     kind = kind || 'inet';
-    return retrieve(kind, this.pid);
+    var r = retrieve(kind, this.pid);
+    if (cb && typeof cb == 'function') {
+        cb(null, r);
+        return;
+    }
+    return r;
 };
 
-proto.numFds = function() {
-    return fs.readdirSync('/proc/' + this.pid + '/fd').length;
+proto.numFds = function(cb) {
+    var dir = '/proc/' + this.pid + '/fd';
+    return _async_and_sync_get_handle_(dir, 'readdir', function(d) {
+        return d.length;
+    }, cb);
+    /*
+    if (cb && typeof cb == 'function') {
+        fs.readdir(dir, function(err, data) {
+            if (err) {
+                cb(err);
+                return;
+            }
+            cb(null, data.length);
+        });
+        return;
+    }
+    return fs.readdirSync(dir).length;
+    */
 };
 
-proto.ppid = function() {
+proto.ppid = function(cb) {
     var self = this;
-    var f = fs.readFileSync('/proc/' + self.pid + '/status', 'utf8');
+    var file = '/proc/' + self.pid + '/status';
+
+    return _async_and_sync_get_handle_(file, 'readFile', function(d) {
+        return d.match(/PPid\:\s+\d+/g)[0].replace(/PPid\:\s+/, '');
+    }, cb);
+    /*
+    if (cb && typeof cb == 'function') {
+        fs.readFile(file, encoding, function(err, data) {
+            if (err) {
+                cb(err);
+                return;
+            }
+            data = data.match(/PPid\:\s+\d+/g)[0].replace(/PPid\:\s+/, '');
+            cb(null, data);
+        });
+        return;
+    }
+    var f = fs.readFileSync(file, encoding);
     f = f.match(/PPid\:\s+\d+/g)[0].replace(/PPid\:\s+/, '');
     return f;
+    */
 };
 
-proto.uids = function() {
-    var self = this;
-    var f = fs.readFileSync('/proc/' + self.pid + '/status', 'utf8');
+function __proto_uids_handle(f) {
     f = f.match(/Uid\:[\s\d]+\n/g);
     f = f[0].split(/\s+/);
     return {
@@ -804,11 +1469,30 @@ proto.uids = function() {
         effective: f[2],
         saved: f[3]
     };
+}
+proto.uids = function(cb) {
+    var self = this;
+    var file = '/proc/' + self.pid + '/status';
+    return _async_and_sync_get_handle_(file, 'readFile', __proto_uids_handle, cb);
+    /*
+    if (cb && typeof cb == 'function') {
+        fs.readFile(file, encoding, function(err, data) {
+            if (err) {
+                cb(err);
+                return;
+            }
+            var r = __proto_uids_handle(data);
+            cb(null, r);
+        });
+        return;
+    }
+
+    var f = fs.readFileSync(file, encoding);
+    return __proto_uids_handle(f);
+    */
 };
 
-proto.gids = function() {
-    var self = this;
-    var f = fs.readFileSync('/proc/' + self.pid + '/status', 'utf8');
+function __proto_gids_handle(f) {
     f = f.match(/Gid\:[\s\d]+\n/g);
     f = f[0].split(/\s+/);
     return {
@@ -816,6 +1500,27 @@ proto.gids = function() {
         effective: f[2],
         saved: f[3]
     };
+}
+proto.gids = function(cb) {
+    var self = this;
+    var file = '/proc/' + self.pid + '/status';
+    return _async_and_sync_get_handle_(file, 'readFile', __proto_gids_handle, cb);
+   /* 
+    if (cb && typeof cb == 'function') {
+        fs.readFile(file, encoding, function(err, data) {
+            if (err) {
+                cb(err);
+                return;
+            }
+            var r = __proto_gids_handle(data);
+            cb(null, r);
+        });
+        return;
+    }
+
+    var f = fs.readFileSync(file, encoding);
+    return __proto_gids_handle(f);
+    */
 };
 
 module.exports = {

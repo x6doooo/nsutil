@@ -13,26 +13,62 @@ if (os.platform() == 'darwin') {
     var _posix = require('../../build/Release/' + _arch + '/nsutil_posix_linux.node');
 }
 
-function getTerminalMap() {
+function __getTerminalMap_Handle(f_arr, terminalMap, path, isP1) {
+    f_arr.forEach(function(v) {
+        var p;
+        if (isP1) {
+            if (v.indexOf('tty') >= 0) {
+                p = path + v;
+                terminalMap[fs.statSync(p).rdev] = p;
+            }
+        } else {
+            p = path + v;
+            terminalMap[fs.statSync(p).rdev] = p;
+        }
+    });
+}
+
+function __getTerminalMap_Handle_async(data, terminalMap, path, isP1 , count, cb) {
+    __getTerminalMap_Handle(data, terminalMap, path, isP1);
+    if (count == 0) {
+        cb(null, terminalMap);
+    }
+}
+
+function getTerminalMap(cb) {
     var terminalMap = {};
     var f_arr;
     var path;
-    if (fs.existsSync('/dev/')) {
-        f_arr = fs.readdirSync('/dev/');
-        f_arr.forEach(function(v) {
-            if (v.indexOf('tty') >= 0) {
-                path = '/dev/' + v;
-                terminalMap[fs.statSync(path).rdev] = path;
-            }
-        });
 
-    }
-    if (fs.existsSync('/dev/pts/')) {
-        f_arr = fs.readdirSync('/dev/pts/'); 
-        f_arr.forEach(function(v) {
-            path = '/dev/pts/' + v;
-            terminalMap[fs.statSync(path).rdev] = path; 
+    var p1 = '/dev/';
+    var p2 = '/dev/pts/';
+
+    if (cb && typeof cb == 'function') {
+        var count = 2;
+        fs.readdir(p1, function(err, data) {
+            if (err) {
+                cb(err);
+                return;
+            }
+            __getTerminalMap_Handle_async(data, terminalMap, p1, true, --count, cb);
         });
+        fs.readdir(p2, function(err, data) {
+            if (err) {
+                cb(err);
+                return;
+            }
+            __getTerminalMap_Handle_async(data, terminalMap, p2, false, --count, cb);
+        });
+        return;
+    }
+
+    if (fs.existsSync(p1)) {
+        f_arr = fs.readdirSync(p1);
+        __getTerminalMap_Handle(f_arr, terminalMap, p1, true);
+    }
+    if (fs.existsSync(p2)) {
+        f_arr = fs.readdirSync(p2);
+        __getTerminalMap_Handle(f_arr, terminalMap, p2);
     }
     return terminalMap;
 }
@@ -42,7 +78,8 @@ function getPriority(pid) {
 }
 
 function setPriority(pid, prio) {
-    return _posix.nsutil_posix_setpriority_sync(pid, prio);
+    _posix.nsutil_posix_setpriority_sync(pid, prio);
+    return 0;
 }
 
 module.exports = {
