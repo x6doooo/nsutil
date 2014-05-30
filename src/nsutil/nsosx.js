@@ -120,6 +120,8 @@ __proto.connections = function(/*family_types, cb*/) {
             v.type = _common.CONN_TYPE_STR[v.type];
             v.state = _common.TCP_STATUSES[v.state] || v.state;
         });
+    } else {
+        conns = [];
     }
     return handleResult(conns, cb, this);
 };
