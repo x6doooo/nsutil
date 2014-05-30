@@ -31,7 +31,7 @@ node-gyp configure build
 var ns = require('nsutil')
 
 // synchronous with return
-ns.cpuTimes()
+res = ns.cpuTimes()
 
 // callback (asynchronous or synchronous)
 ns.cpuTimes(function(err, res) {
