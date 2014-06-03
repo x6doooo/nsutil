@@ -33,7 +33,6 @@ function _async_and_sync_get_handle_(file, method, contentHandle, cb) {
         fs[method].apply(null, args);
         return;
     }
-    // TODO: 异常处理
     var r = fs[method + 'Sync'](file, encoding);
     return contentHandle(r);
 }
@@ -60,17 +59,6 @@ function __getCputimesFields_handle(f) {
 function getCputimesFields(cb) {
     var file = '/proc/stat';
     return _async_and_sync_get_handle_(file, 'readFile', __getCputimesFields_handle, cb);
-    /*
-    if (cb && typeof cb == 'function') {
-        fs.readFile(file, encoding, function(err, data) {
-            var fields = __getCputimesFields_handle(data);
-            cb(fields);
-        });
-        return;
-    }
-    var f = fs.readFileSync(file, encoding);
-    return __getCputimesFields_handle(f);
-    */
 }
 
 var cpuTimesFields = getCputimesFields();
@@ -145,23 +133,6 @@ function swapMemory(cb) {
     var file = '/proc/vmstat';
     //var percent = _common.usagePercent(used, sysinfo.total, 2);
     return _async_and_sync_get_handle_(file, 'readFile', __swapMemory_handle, cb);
-   /* 
-    if (cb && typeof cb == 'function') {
-        fs.readFile(file, encoding, function(err, data) {
-            if (err) {
-                cb (err, null);
-                return;
-            }
-            var r = __swapMemory_handle(data);
-            cb(null, r);
-        });
-        return;
-    }
-
-    var f = fs.readFileSync(file, encoding);
-    var r = __swapMemory_handle(f);
-    return r;
-    */
 }
 
 function __cpuTimes_handle(f) {
@@ -180,23 +151,6 @@ function cpuTimes(cb) {
 
     var file = '/proc/stat';
     return _async_and_sync_get_handle_(file, 'readFile', __cpuTimes_handle, cb);
-
-/*
-    if (cb && typeof cb == 'function') {
-        fs.readFile(file, encoding, function(err, data) {
-            if (err) {
-                cb(err, null);
-                return;
-            }
-            var r = __cpuTimes_handle(data);
-            cb(null, r);
-        });
-        return;
-    }
-
-    var f = fs.readFileSync(file, encoding);
-    return __cpuTimes_handle(f);
-    */
 }
 
 
@@ -226,23 +180,6 @@ function perCpuTimes(cb) {
 
     var file = '/proc/stat';
     return _async_and_sync_get_handle_(file, 'readFile', __perCpuTimes_handle, cb);
-
-/*
-    if (cb && typeof cb == 'function') {
-        fs.readFile(file, encoding, function(err, data) {
-            if (err) {
-                cb(err, null);
-                return;
-            }
-            var r = __perCpuTimes_handle(data);
-            cb(null, r);
-        });
-        return;
-    }
-
-    var f = fs.readFileSync(file, encoding);
-    return __perCpuTimes_handle(f);
-    */
 }
 
 
@@ -302,23 +239,6 @@ function __cpuCountPhysical_handle(f) {
 function cpuCountPhysical(cb) {
     var file = '/proc/cpuinfo';
     return _async_and_sync_get_handle_(file, 'readFile', __cpuCountPhysical_handle, cb);
-
-/*
-    if (cb && typeof cb == 'function') {
-        fs.readFile(file, encoding, function(err, data) {
-            if (err) {
-                cb(err, null);
-                return;
-            }
-            var r = __cpuCountPhysical_handle(data);
-            cb(null, r);
-        });
-        return;
-    }
-
-    var f = fs.readFileSync(file, encoding);
-    return __cpuCountPhysical_handle(f);
-    */
 }
 
 
@@ -359,21 +279,6 @@ function __bootTime_handle(f) {
 function bootTime(cb) {
     var file = '/proc/stat';
     return _async_and_sync_get_handle_(file, 'readFile', __bootTime_handle, cb);
-    /*
-    if (cb && typeof cb == 'function') {
-        fs.readFile(file, encoding, function(err, data) {
-            if (err) {
-                cb(err, null);
-                return;
-            }
-            var r = __bootTime_handle(data);
-            cb(null, r);
-        });
-        return;
-    }
-    var f = fs.readFileSync(file, encoding);
-    return __bootTime_handle(f);
-    */
 }
 
 
@@ -394,22 +299,6 @@ function __pids_handle(f) {
 function pids(cb) {
     var dir = '/proc';
     return _async_and_sync_get_handle_(dir, 'readdir', __pids_handle, cb);
-
-/*
-    if (cb && typeof cb == 'function') {
-        fs.readdir(dir, function(err, data) {
-            if (err) {
-                cb(err, null);
-                return;
-            }
-            var r = __pids_handle(data);
-            cb(null, r);
-        });
-    }
-
-    var f = fs.readdirSync(dir);
-    return __pids_handle(f);
-    */
 }
 
 function pidExists(pid, cb) {
@@ -692,22 +581,6 @@ function __net_io_counters_handle(f) {
 function net_io_counters(cb) {
     var file = '/proc/net/dev';
     return _async_and_sync_get_handle_(file, 'readFile', __net_io_counters_handle, cb);
-/*
-    if (cb && typeof cb == 'function') {
-        fs.readFile(file, encoding, function(err, data) {
-            if (err) {
-                cb(err, null);
-                return;
-            }
-            var r = __net_io_counters_handle(data);
-            cb(null, r);
-        });
-        return;
-    }
-
-    var f = fs.readFileSync(file, encoding);
-    return __net_io_counters_handle(f);
-    */
 }
 
 function __disk_io_counters_handle_1(f) {
@@ -809,22 +682,6 @@ function __diskPartitions_handle(f) {
 function diskPartitions(cb) {
     var file = '/proc/filesystems';
     return _async_and_sync_get_handle_(file, 'readFile', __diskPartitions_handle, cb);
-   /* 
-    if (cb && typeof cb == 'function') {
-        fs.readFile(file, encoding, function(err, data) {
-            if (err) {
-                cb(err);
-                return;
-            }
-            var r = __diskPartitions_handle(data);
-            cb(null, r);
-        });
-        return;
-    }
-
-    var f = fs.readFileSync(file, encoding);
-    return __diskPartitions_handle(f);
-    */
 }
 
 var __class_proc__ = function(pid) {
@@ -845,22 +702,6 @@ proto.name = function(cb) {
     var fname = '/proc/' + self.pid + '/stat';
     
     return _async_and_sync_get_handle_(fname, 'readFile', __proto_name_handle, cb);
-    /*
-    if (cb && typeof cb == 'function') {
-        fs.readFile(fname, encoding, function(err, data) {
-            if (err) {
-                cb(err);
-                return;
-            }
-            var r = __proto_name_handle(data);
-            cb(null, r);
-        });
-        return;
-    }
-
-    var f = fs.readFileSync(fname, encoding);
-    return __proto_name_handle(f);
-    */
 };
 
 function __proto_exe_handle(_exe) {
@@ -915,22 +756,6 @@ proto.cmdline = function(cb) {
     var self = this;
     var fname = '/proc/' + self.pid + '/cmdline';
     return _async_and_sync_get_handle_(fname, 'readFile', __proto_cmdline_handle, cb);
-   /* 
-    if (cb && typeof cb == 'function') {
-        fs.readFile(fname, encoding, function(err, data) {
-            if (err) {
-                cb(err);
-                return;
-            }
-            var r = __proto_cmdline_handle(data);
-            cb(null, r);
-        });
-        return;
-    }
-
-    var f = fs.readFileSync(fname, encoding);
-    return __proto_cmdline_handle(f);
-    */
 };
 
 
@@ -1004,22 +829,6 @@ proto.ioCounters = function(cb) {
     }
 
     return _async_and_sync_get_handle_(fname, 'readFile', __proto_ioCounters_handle, cb);
-    /*
-    if (cb && typeof cb == 'function') {
-        fs.readFile(fname, encoding, function(err, data) {
-            if (err) {
-                cb(err);
-                return;
-            }
-            var r = __proto_ioCounters_handle(data);
-            cb(null, r);
-        });
-        return;
-    }
-
-    var f = fs.readFileSync(fname, encoding);
-    return __proto_ioCounters_handle(f);
-    */
 };
 
 function __proto_cpuTimes_handle(f) {
@@ -1033,21 +842,6 @@ proto.cpuTimes = function(cb) {
     var self = this;
     var file = '/proc/' + self.pid + '/stat';
     return _async_and_sync_get_handle_(file, 'readFile', __proto_cpuTimes_handle, cb);
-    /*
-    if (cb && typeof cb == 'function') {
-        fs.readFile(file, encoding, function(err, data) {
-            if (err) {
-                cb(err);
-                return;
-            }
-            var r = __proto_cpuTimes_handle(data);
-            cb(null, r);
-        });
-        return;
-    }
-    var f = fs.readFileSync(file, encoding);
-    return __proto_cpuTimes_handle(f);
-    */
 };
 
 //TODO: proto.wait (like: psutil.Process.wait)
@@ -1061,22 +855,6 @@ proto.createTime = function(cb) {
     var self = this;
     var file = '/proc/' + self.pid + '/stat';
     return _async_and_sync_get_handle_(file, 'readFile', __proto_cpuTimes_handle, cb);
-   /* 
-    if (cb && typeof cb == 'function') {
-        fs.readFile(file, encoding, function(err, data) {
-            if (err) {
-                cb(err);
-                return;
-            }
-            var r = __proto_createTime_handle(data);
-            cb(null, r);
-        });
-        return;
-    }
-
-    var f = fs.readFileSync(file, encoding);
-    return __proto_createTime_handle(f);
-    */
 };
 
 function __proto_memoryInfo_handle(f) {
@@ -1090,22 +868,6 @@ proto.memoryInfo = function(cb) {
     var self = this;
     var file = '/proc/' + self.pid + '/statm';
     return _async_and_sync_get_handle_(file, 'readFile', __proto_memoryInfo_handle, cb);
-/*
-    if (cb && typeof cb == 'function') {
-        fs.readFile(file, encoding, function(err, data) {
-            if (err) {
-                cb(err);
-                return;
-            }
-            var r = __proto_memoryInfo_handle(data);
-            cb(null, r);
-        });
-        return;
-    }
-
-    var f = fs.readFileSync(file, encoding);
-    return __proto_memoryInfo_handle(f);
-    */
 };  
 
 function __proto_memMaps_handle(f) {
@@ -1136,25 +898,6 @@ proto.memMaps = function(cb) {
     var self = this;
     var fname = '/proc/' + self.pid + '/smaps';
     return _async_and_sync_get_handle_(fname, 'readFile', __proto_memMaps_handle, cb);
-/*
-    if (cb && typeof cb == 'function') {
-        fs.readFile(fname, encoding, function(err, data) {
-            if (err) {
-                cb(err);
-                return;
-            }
-            var r = __proto_memMaps_handle(data);
-            cb(null, data);
-        });
-        return;
-    }
-
-    if (!fs.existsSync(fname)) {
-        return;
-    }
-    var f = fs.readFileSync(fname, encoding);
-    return __proto_memMaps_handle(f);
-    */
 };
 
 function __proto_cwd_handle(f) {
@@ -1164,21 +907,6 @@ proto.cwd = function(cb) {
     var self = this;
     var path = '/proc/' + self.pid + '/cwd';
     return _async_and_sync_get_handle_(path, 'readlink', __proto_cwd_handle, cb);
-    /*
-    if (cb && typeof cb == 'function') {
-        fs.readlink(path, function(err, data) {
-            if (err) {
-                cb(err);
-                return;
-            }
-            var r = __proto_cwd_handle(data);
-            cb(null, r);
-        });
-        return;
-    }
-    var f = fs.readlinkSync(path);
-    return __proto_cwd_handle(f);
-    */
 };
 
 function __proto_numCtxSwitches_handle(f) {
@@ -1198,20 +926,6 @@ proto.numCtxSwitches = function(cb) {
     var self = this;
     var file = '/proc/' + self.pid + '/status';
     return _async_and_sync_get_handle_(file, 'readFile', __proto_numCtxSwitches_handle, cb);
-    /*
-    if (cb && typeof cb == 'function') {
-        fs.readFile(file, encoding, function(err, data) {
-            if (err) {
-                cb(err);
-                return;
-            }
-            var r = __proto_numCtxSwitches_handle(data);
-            cb(null, r);
-        });
-        return;
-    }
-    var f = fs.readFileSync(file, encoding);
-    return __proto_numCtxSwitches_handle(f);*/
 };
 
 function __proto_numThreads_handle(f) {
@@ -1228,22 +942,6 @@ proto.numThreads = function(cb) {
     var self = this;
     var file = '/proc/' + self.pid + '/status';
     return _async_and_sync_get_handle_(file, 'readFile', __proto_numThreads_handle, cb);
-    /*
-    if (cb && typeof cb == 'function') {
-        fs.readFile(file, encoding, function(err, data) {
-            if (err) {
-                cb(err);
-                return;
-            }
-            var r = __proto_numThreads_handle(data);
-            cb(null, r);
-        });
-        return;
-    }
-
-    var f = fs.readFileSync(file, encoding);
-    return __proto_numThreads_handle(f);
-    */
 };
 
 proto.threads = function(cb) {
@@ -1333,21 +1031,6 @@ proto.status = function(cb) {
     var self = this;
     var file = '/proc/' + self.pid + '/status';
     return _async_and_sync_get_handle_(file, 'readFile', __proto_status_handle, cb);
-    /*
-    if (cb && typeof cb == 'function') {
-        fs.readFile(file, encoding, function(err, data) {
-            if (err) {
-                cb(err);
-                return;
-            }
-            var r = __proto_status_handle(data);
-            cb(null, r);
-        });
-        return;
-    }
-    var f = fs.readFileSync(file, encoding);
-    return __proto_status_handle(f);
-    */
 };
 
 proto.openFiles = function(cb) {
@@ -1421,19 +1104,6 @@ proto.numFds = function(cb) {
     return _async_and_sync_get_handle_(dir, 'readdir', function(d) {
         return d.length;
     }, cb);
-    /*
-    if (cb && typeof cb == 'function') {
-        fs.readdir(dir, function(err, data) {
-            if (err) {
-                cb(err);
-                return;
-            }
-            cb(null, data.length);
-        });
-        return;
-    }
-    return fs.readdirSync(dir).length;
-    */
 };
 
 proto.ppid = function(cb) {
@@ -1443,22 +1113,6 @@ proto.ppid = function(cb) {
     return _async_and_sync_get_handle_(file, 'readFile', function(d) {
         return d.match(/PPid\:\s+\d+/g)[0].replace(/PPid\:\s+/, '');
     }, cb);
-    /*
-    if (cb && typeof cb == 'function') {
-        fs.readFile(file, encoding, function(err, data) {
-            if (err) {
-                cb(err);
-                return;
-            }
-            data = data.match(/PPid\:\s+\d+/g)[0].replace(/PPid\:\s+/, '');
-            cb(null, data);
-        });
-        return;
-    }
-    var f = fs.readFileSync(file, encoding);
-    f = f.match(/PPid\:\s+\d+/g)[0].replace(/PPid\:\s+/, '');
-    return f;
-    */
 };
 
 function __proto_uids_handle(f) {
@@ -1474,22 +1128,6 @@ proto.uids = function(cb) {
     var self = this;
     var file = '/proc/' + self.pid + '/status';
     return _async_and_sync_get_handle_(file, 'readFile', __proto_uids_handle, cb);
-    /*
-    if (cb && typeof cb == 'function') {
-        fs.readFile(file, encoding, function(err, data) {
-            if (err) {
-                cb(err);
-                return;
-            }
-            var r = __proto_uids_handle(data);
-            cb(null, r);
-        });
-        return;
-    }
-
-    var f = fs.readFileSync(file, encoding);
-    return __proto_uids_handle(f);
-    */
 };
 
 function __proto_gids_handle(f) {
@@ -1505,22 +1143,6 @@ proto.gids = function(cb) {
     var self = this;
     var file = '/proc/' + self.pid + '/status';
     return _async_and_sync_get_handle_(file, 'readFile', __proto_gids_handle, cb);
-   /* 
-    if (cb && typeof cb == 'function') {
-        fs.readFile(file, encoding, function(err, data) {
-            if (err) {
-                cb(err);
-                return;
-            }
-            var r = __proto_gids_handle(data);
-            cb(null, r);
-        });
-        return;
-    }
-
-    var f = fs.readFileSync(file, encoding);
-    return __proto_gids_handle(f);
-    */
 };
 
 module.exports = {

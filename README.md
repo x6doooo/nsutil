@@ -6,7 +6,7 @@ Node.js system utilities
 
 ##Summary
 
-* a fork of [psutil](https://code.google.com/p/psutil/), rebuilt with Node.js
+* a distribution of [psutil](https://code.google.com/p/psutil/), rebuilt with Node.js
 * support OSX & Linux
 
 ##Install
@@ -53,10 +53,7 @@ ns.cpuTimes(function(err, res) {
 res = ns.cpuTimes()
 
 // callback
-ns.cpuTimes(function(err, res) {
-    if (err) return;
-    console.log(res);
-});
+ns.cpuTimes(function(err, res) { ... });
 
 // output => 
 { user: 40.76, nice: 118.53, system: 683.01, idle: 287470.94 }
@@ -86,7 +83,8 @@ res = ns.cpuCountLogical()
 // callback
 ns.cpuCountLogical(function(err, res) { ... })
 
-// output => 2
+// output =>
+ 2
 ```
 
 ####Memory
