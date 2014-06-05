@@ -11,6 +11,9 @@ void Init(v8::Handle<v8::Object> exports) {
 
     exports->Set(v8::String::NewSymbol("nsutil_posix_setpriority_sync"), 
             v8::FunctionTemplate::New(nsutil_posix_setpriority_sync)->GetFunction());
+
+    exports->Set(v8::String::NewSymbol("nsutil_posix_statvfs"),
+            v8::FunctionTemplate::New(nsutil_posix_statvfs)->GetFunction());
 }
 
 
