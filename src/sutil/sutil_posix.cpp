@@ -30,3 +30,17 @@ sutil_posix_setpriority(const int32_t &pid, const int &priority)
     }
     return 0;
 }
+
+/*
+ *
+ * disk usage
+ *
+ * */
+
+int sutil_posix_statvfs(const char* path, struct statvfs &buffer) {
+
+    int status;
+    status = statvfs(path, &buffer);
+    return status;
+    
+}
