@@ -82,9 +82,15 @@ function setPriority(pid, prio) {
     return 0;
 }
 
+function statvfs(path) {
+    return _posix.nsutil_posix_statvfs(path);
+}
+
+
 module.exports = {
     pidExists: pidExists,
     getTerminalMap: getTerminalMap,
     getPriority: getPriority,
-    setPriority: setPriority
+    setPriority: setPriority,
+    statvfs: statvfs
 };
