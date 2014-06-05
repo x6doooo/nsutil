@@ -14,7 +14,8 @@ var apiList = {
     functions: [
         'virtualMemory', 'swapMemory', 'cpuTimes', 'perCpuTimes',
         'cpuCountLogical', 'cpuCountPhysical', 'bootTime', 'diskPartitions',
-        'users', 'pids', 'netConnections', 'netIOCounters', 'diskIOCounters'
+        'users', 'pids', 'netConnections', 'netIOCounters', 'diskIOCounters',
+        'diskUsage'
     ],
     process: [
         'name', 'exe', 'cmdline', 'ppid', 'cwd', 'uids', 'gids',
@@ -30,24 +31,43 @@ describe('[platform] ' + platform, function() {
     // 测试接口是否能跑通，数据正确性不在这里测
     /**/
     apiList.functions.forEach(function(apiName) {
+        var p;
+        if (apiName == 'diskUsage') p = '/';
         it ('[function] ' + apiName, function() {
-            var r = ns[apiName]();
+            if (p) {
+                var r = ns[apiName](p);
+            } else {
+                var r = ns[apiName]();
+            }
             if (typeof r == 'undefined') {
                 throw new Error('result undefined');
             }
             //console.log(r);
         });
         it ('[function] ' + apiName + ' (async)', function(done) {
-            ns[apiName](function(err, res) {
-                if (err) {
-                    throw new Error('result err');
-                }
-                if (typeof res == 'undefined') {
-                    throw new Error('result undefined');
-                }
-               // console.log(res);
-                done();
-            });
+            if (p) {
+                ns[apiName](p, function(err, res) {
+                    if (err) {
+                        throw new Error('result err');
+                    }
+                    if (typeof res == 'undefined') {
+                        throw new Error('result undefined');
+                    }
+                   // console.log(res);
+                    done();
+                });
+            } else {
+                ns[apiName](function(err, res) {
+                    if (err) {
+                        throw new Error('result err');
+                    }
+                    if (typeof res == 'undefined') {
+                        throw new Error('result undefined');
+                    }
+                   // console.log(res);
+                    done();
+                });
+            }
         });
     });
     /**/
