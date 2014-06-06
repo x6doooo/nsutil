@@ -683,6 +683,22 @@ function diskPartitions(cb) {
     var file = '/proc/filesystems';
     return _async_and_sync_get_handle_(file, 'readFile', __diskPartitions_handle, cb);
 }
+function diskUsage(path, cb) {
+    if(!path) return;
+    var d = _posix.statvfs(path);
+    var res = {
+        // 1048576 = 1024 * 1024
+        // KB
+        free: d.bavail / 1048576 * d.frsize,
+        total: d.blocks / 1048576 * d.frsize,
+        used: (d.blocks - d.bfree) / 1048576 * d.frsize
+    };
+    if (cb && typeof cb == 'function') {
+        cb(null, res);
+        return;
+    }
+    return res;
+}
 
 var __class_proc__ = function(pid) {
     this.pid = pid;
@@ -1166,6 +1182,7 @@ module.exports = {
     //disk
     diskIOCounters: disk_io_counters,
     diskPartitions: diskPartitions,
+    diskUsage: diskUsage,
     //Process
     Process: Process
 };
