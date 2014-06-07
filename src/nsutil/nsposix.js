@@ -2,6 +2,7 @@
 var fs = require('fs');
 var os = require('os');
 var _arch = os.arch();
+
 if (os.platform() == 'darwin') {
     var _osx = require('../../build/Release/' + _arch + '/nsutil_osx.node');
     var _posix = require('../../build/Release/' + _arch + '/nsutil_posix_osx.node');

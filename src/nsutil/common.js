@@ -1,14 +1,14 @@
 var CONN = {};
 
 const AF_INET     = CONN.AF_INET     = 2;
-const AF_INET6    = CONN.AF_INET6     = 10;
+const AF_INET6    = CONN.AF_INET6    = 10;
 const AF_UNIX     = CONN.AF_UNIX     = 1;
 const SOCK_STREAM = CONN.SOCK_STREAM = 1;
 const SOCK_DGRAM  = CONN.SOCK_DGRAM  = 2;
 
 const CONN_FAMILY_STR = {
-    '1': 'AF_UNIX',
-    '2': 'AF_INET',
+    '1':  'AF_UNIX',
+    '2':  'AF_INET',
     '10': 'AF_INET6'
 };
 
@@ -109,7 +109,7 @@ const PROC_STATUSES_LINUX = {
     W: STATUS_WAKING
 };
 
-
+// 准备废弃
 function usagePercent(used, total, round) {
 
     var percent = used / total * 100;

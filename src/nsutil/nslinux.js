@@ -687,11 +687,9 @@ function diskUsage(path, cb) {
     if(!path) return;
     var d = _posix.statvfs(path);
     var res = {
-        // 1048576 = 1024 * 1024
-        // KB
-        free: d.bavail / 1048576 * d.frsize,
-        total: d.blocks / 1048576 * d.frsize,
-        used: (d.blocks - d.bfree) / 1048576 * d.frsize
+        free: d.bavail * d.frsize,
+        total: d.blocks * d.frsize,
+        used: (d.blocks - d.bfree) * d.frsize
     };
     if (cb && typeof cb == 'function') {
         cb(null, res);
