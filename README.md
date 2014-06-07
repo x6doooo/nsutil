@@ -135,6 +135,20 @@ ns.swapMemory(function(err, res) { ... });
 
 ####Disks
 
+#####[Function] diskUsage
+```js
+// sync
+res = ns.diskUsage('/')
+
+// callback
+ns.diskUsage('/', function(err, res) { ... })
+
+// output => unit:bytes
+ { free:  816916015625,
+   total: 1148920703125,
+   used:  10647291015625 }
+```
+
 #####[Function] diskPartitions
 ```js
 // sync
