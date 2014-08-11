@@ -1,8 +1,4 @@
 {
-    "make_global_settings": [
-        ["CXX", "/usr/bin/clang++"],
-        ["LINK", "/usr/bin/clang++"],
-    ],
     "variables": {
         "conditions": [
             ["OS=='mac'", {
