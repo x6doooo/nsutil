@@ -1,28 +1,21 @@
 #include <node.h>
+#include <nan.h>
 #include <v8.h>
 #include "../sutil/sutil_linux.h"
 
-v8::Handle<v8::Value>
-nsutil_proc_ioprio_get(const v8::Arguments &args);
+NAN_METHOD(nsutil_proc_ioprio_get);
 
-v8::Handle<v8::Value>
-nsutil_proc_ioprio_set(const v8::Arguments &args);
+NAN_METHOD(nsutil_proc_ioprio_set);
 
-v8::Handle<v8::Value>
-nsutil_disk_partitions(const v8::Arguments &args);
+NAN_METHOD(nsutil_disk_partitions);
 
-v8::Handle<v8::Value>
-nsutil_sysinfo(const v8::Arguments &args);
+NAN_METHOD(nsutil_sysinfo);
 
-v8::Handle<v8::Value>
-nsutil_proc_cpu_affinity_get(const v8::Arguments &args);
+NAN_METHOD(nsutil_proc_cpu_affinity_get);
 
-v8::Handle<v8::Value>
-nsutil_users(const v8::Arguments &args);
+NAN_METHOD(nsutil_users);
 
-v8::Handle<v8::Value>
-nsutil_pid_exists(const v8::Arguments &args);
+NAN_METHOD(nsutil_pid_exists);
 
-v8::Handle<v8::Value>
-nsutil_sysconf(const v8::Arguments &args);
+NAN_METHOD(nsutil_sysconf);
 

@@ -5,8 +5,7 @@ using namespace std;
 
 #if SUTIL_HAVE_IOPRIO
 
-Handle<Value>
-nsutil_pid_exists(const Arguments &args)
+NAN_METHOD(nsutil_pid_exists)
 {
     HandleScope scope;
     if (args.Length() == 0) {
@@ -21,8 +20,7 @@ nsutil_pid_exists(const Arguments &args)
     return scope.Close(Boolean::New(sutil_pid_exists(pid)));
 }
 
-Handle<Value>
-nsutil_proc_ioprio_get(const Arguments &args) 
+NAN_METHOD(nsutil_proc_ioprio_get) 
 {
     HandleScope scope;
     if (args.Length() == 0) {
@@ -46,8 +44,7 @@ nsutil_proc_ioprio_get(const Arguments &args)
     return scope.Close(obj);
 }
 
-Handle<Value>
-nsutil_proc_ioprio_set(const Arguments &args) 
+NAN_METHOD(nsutil_proc_ioprio_set) 
 {
     HandleScope scope;
     if (args.Length() != 3) {
@@ -73,8 +70,7 @@ nsutil_proc_ioprio_set(const Arguments &args)
 #if SUTIL_HAVE_PRLIMIT
 
 //XXX: TODO: get set
-Handle<Value>
-nsutil_linux_prlimit(const Arguments &args) 
+NAN_METHOD(nsutil_linux_prlimit) 
 {
     HandleScope scope;
     return scope.Close(Undefined());
@@ -83,8 +79,7 @@ nsutil_linux_prlimit(const Arguments &args)
 #endif
 
 
-Handle<Value>
-nsutil_disk_partitions(const Arguments &args)
+NAN_METHOD(nsutil_disk_partitions)
 {
     HandleScope scope;
 
@@ -117,8 +112,7 @@ nsutil_disk_partitions(const Arguments &args)
 
 //int
 //sutil_linux_sysinfo(uint64_t* &info)
-Handle<Value>
-nsutil_sysinfo(const Arguments &args)
+NAN_METHOD(nsutil_sysinfo)
 {
     HandleScope scope;
     
@@ -149,8 +143,7 @@ nsutil_sysinfo(const Arguments &args)
 
 //int
 //sutil_proc_cpu_affinity_get(const int32_t pid, uint32_t &mask)
-Handle<Value>
-nsutil_proc_cpu_affinity_get(const Arguments &args)
+NAN_METHOD(nsutil_proc_cpu_affinity_get)
 {
     HandleScope scope;
     if (args.Length() == 0) {
@@ -175,8 +168,7 @@ nsutil_proc_cpu_affinity_get(const Arguments &args)
 //int
 //sutil_proc_cpu_affinity_set(const int32_t &pid, vector<int32_t> &cpu_set_list)
 /*
-Handle<Value>
-nsutil_proc_cpu_affinity_set(const Arguments &args) 
+NAN_METHOD(nsutil_proc_cpu_affinity_set) 
 {
     HandleScope scope;
 
@@ -204,8 +196,7 @@ nsutil_proc_cpu_affinity_set(const Arguments &args)
 
 //int
 //sutil_users(vector<sutil_user_info> &user_list)
-Handle<Value>
-nsutil_users(const Arguments &args)
+NAN_METHOD(nsutil_users)
 {
     HandleScope scope;
 
@@ -235,8 +226,7 @@ nsutil_users(const Arguments &args)
 
 
 // sysconf
-Handle<Value>
-nsutil_sysconf(const Arguments &args) 
+NAN_METHOD(nsutil_sysconf) 
 {
     HandleScope scope;
     if (args.Length() == 0) {

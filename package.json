@@ -20,14 +20,14 @@
     "url": "http://github.com/x6doooo/nsutil/issues"
   },
   "dependencies": {
-    "mocha": "*"
+    "mocha": "*",
+    "nan": "^1.8.4"
   },
-  "devDependencies": {
-  },
+  "devDependencies": {},
   "license": [
     {
-      "type" : "BSD",
-      "url" : "https://github.com/x6doooo/nsutil/raw/master/LICENSE"
+      "type": "BSD",
+      "url": "https://github.com/x6doooo/nsutil/raw/master/LICENSE"
     }
   ],
   "engines": [

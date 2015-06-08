@@ -23,7 +23,10 @@
                         './src/nsutil/nsutil_osx_funcs_async.cpp',
                         './src/nsutil/nsutil_osx.cpp'
                     ],
-                    "cflags_cc": ["-std=c++11"]
+                    "cflags_cc": ["-std=c++11"],
+                    "include_dirs": [
+                        "<!(node -e \"require('nan')\")"
+                    ]
                 },
                 {
                     "target_name": "nsutil_posix_osx",
@@ -32,7 +35,10 @@
                         './src/nsutil/nsutil_posix_funcs.cpp',
                         './src/nsutil/nsutil_posix.cpp'
                     ],
-                    "cflags_cc": ["-std=c++11"]
+                    "cflags_cc": ["-std=c++11"],
+                    "include_dirs": [
+                        "<!(node -e \"require('nan')\")"
+                    ]
                 }
             ],
             'xcode_settings': {
@@ -51,7 +57,10 @@
                         "./src/nsutil/nsutil_linux_funcs.cpp",
                         "./src/nsutil/nsutil_linux.cpp"
                     ],
-                    "cflags_cc": ["-std=c++11"]
+                    "cflags_cc": ["-std=c++11"],
+                    "include_dirs": [
+                        "<!(node -e \"require('nan')\")"
+                    ]
                 },
                 {
                     "target_name": "nsutil_posix_linux",
@@ -60,7 +69,10 @@
                         './src/nsutil/nsutil_posix_funcs.cpp',
                         './src/nsutil/nsutil_posix.cpp'
                     ],
-                    "cflags_cc": ["-std=c++11"]
+                    "cflags_cc": ["-std=c++11"],
+                    "include_dirs": [
+                        "<!(node -e \"require('nan')\")"
+                    ]
                 }
             ]
         }]
@@ -78,6 +90,9 @@
                     ],
                     "destination": "<(module_root_dir)/build/Release/<(target_arch)/"
                 }
+            ],
+            "include_dirs": [
+                "<!(node -e \"require('nan')\")"
             ]
         }
     ]
