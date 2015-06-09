@@ -5,7 +5,7 @@ using namespace std;
 
 template<typename T>
 struct Baton {
-    Persistent<Function> callback;
+    NanCallback *callback;
     bool error;
     std::string error_message;
     T result;
@@ -22,71 +22,70 @@ void cpu_times(uv_work_t* req) {
 }
 
 void cpu_times_after(uv_work_t* req) {
-    HandleScope scope;
+    NanScope();
     Baton<double*>* baton = static_cast<Baton<double*>*>(req->data);
     if (baton->error) {
-        Local<Value> err = Exception::Error(String::New(baton->error_message.c_str()));
+        Local<Value> err = Exception::Error(NanNew<String>(baton->error_message.c_str()));
 
         const unsigned argc = 1;
         Local<Value> argv[argc] = { err };
 
         TryCatch try_catch;
 
-        baton->callback->Call(Context::GetCurrent()->Global(), argc, argv);
+        baton->callback->Call(argc, argv);
         if (try_catch.HasCaught()) {
             node::FatalException(try_catch);
         }
     } else {
          
         const unsigned argc = 2;
-        Local<Object> cpu_obj = Object::New();
-        cpu_obj->Set(String::NewSymbol("user"),
-                Number::New(baton->result[0]));
-        cpu_obj->Set(String::NewSymbol("nice"),
-                Number::New(baton->result[1]));
-        cpu_obj->Set(String::NewSymbol("sys"),
-                Number::New(baton->result[2]));
-        cpu_obj->Set(String::NewSymbol("idle"),
-                Number::New(baton->result[3]));
+        Local<Object> cpu_obj = NanNew<Object>();
+        cpu_obj->Set(NanNew("user"),
+                NanNew<Number>(baton->result[0]));
+        cpu_obj->Set(NanNew("nice"),
+                NanNew<Number>(baton->result[1]));
+        cpu_obj->Set(NanNew("sys"),
+                NanNew<Number>(baton->result[2]));
+        cpu_obj->Set(NanNew("idle"),
+                NanNew<Number>(baton->result[3]));
 
         Local<Value> argv[argc] = {
-            Local<Value>::New(Null()),
-            Local<Value>::New(cpu_obj)
+            NanNull(),
+            NanNew<Value>(cpu_obj)
         };
         TryCatch try_catch;
-        baton->callback->Call(Context::GetCurrent()->Global(), argc, argv);
+        baton->callback->Call(argc, argv);
         if (try_catch.HasCaught()) {
             node::FatalException(try_catch);
         }
     }
     //释放
-    baton->callback.Dispose();
+    delete baton->callback;
     delete[] baton->result;
     delete baton;
     delete req;
 }
 
 
-Handle<Value>
-nsutil_cpu_times_async(const Arguments &args)
+NAN_METHOD(nsutil_cpu_times_async)
 {
-    HandleScope scope;
+    NanScope();
 
     if (args.Length() != 1) {
-        ThrowException(Exception::TypeError(String::New("Wrong number of arguments")));
-        return Undefined();
+        NanThrowTypeError("Wrong number of arguments");
+        NanReturnUndefined();
     }
 
     if (!args[0]->IsFunction()) {
-        ThrowException(Exception::TypeError(String::New("Wrong arguments")));
-        return Undefined();
+        NanThrowTypeError("Wrong arguments");
+        NanReturnUndefined();
     }
 
-    Local<Function> callback = Local<Function>::Cast(args[0]);
+    Local<Function> callback = args[0].As<Function>();
    
     Baton<double*>* baton = new Baton<double*>();
     baton->error = false;
-    baton->callback = Persistent<Function>::New(callback);
+    baton->callback = new NanCallback(callback);
         
     uv_work_t *req = new uv_work_t();
     req->data = baton;
@@ -94,7 +93,7 @@ nsutil_cpu_times_async(const Arguments &args)
     int status = uv_queue_work(uv_default_loop(), req, cpu_times,
                                (uv_after_work_cb)cpu_times_after);
     assert(status == 0);
-    return Undefined();
+    NanReturnUndefined();
 }
 
 
@@ -112,17 +111,17 @@ void per_cpu_times(uv_work_t* req) {
 }
 
 void per_cpu_times_after(uv_work_t* req) {
-    HandleScope scope;
+    NanScope();
     Baton<vector<vector<double>>>* baton = static_cast<Baton<vector<vector<double>>>*>(req->data);
     if (baton->error) {
-        Local<Value> err = Exception::Error(String::New(baton->error_message.c_str()));
+        Local<Value> err = Exception::Error(NanNew<String>(baton->error_message.c_str()));
 
         const unsigned argc = 1;
         Local<Value> argv[argc] = { err };
 
         TryCatch try_catch;
 
-        baton->callback->Call(Context::GetCurrent()->Global(), argc, argv);
+        baton->callback->Call(argc, argv);
         if (try_catch.HasCaught()) {
             node::FatalException(try_catch);
         }
@@ -130,22 +129,22 @@ void per_cpu_times_after(uv_work_t* req) {
          
         const unsigned argc = 2;
 
-        Local<Object> cpu_obj = Object::New();
+        Local<Object> cpu_obj = NanNew<Object>();
 
         size_t i = 0;
 
-        Local<Array> per_cpu_arr = Array::New(baton->result.size());
+        Local<Array> per_cpu_arr = NanNew<Array>(baton->result.size());
 
         for (auto &cpu_times : baton->result) {
         
-            cpu_obj->Set(String::NewSymbol("user"),
-                    Number::New(cpu_times[0]));
-            cpu_obj->Set(String::NewSymbol("nice"),
-                    Number::New(cpu_times[1]));
-            cpu_obj->Set(String::NewSymbol("sys"),
-                    Number::New(cpu_times[2]));
-            cpu_obj->Set(String::NewSymbol("idle"),
-                    Number::New(cpu_times[3]));
+            cpu_obj->Set(NanNew("user"),
+                    NanNew<Number>(cpu_times[0]));
+            cpu_obj->Set(NanNew("nice"),
+                    NanNew<Number>(cpu_times[1]));
+            cpu_obj->Set(NanNew("sys"),
+                    NanNew<Number>(cpu_times[2]));
+            cpu_obj->Set(NanNew("idle"),
+                    NanNew<Number>(cpu_times[3]));
 
             per_cpu_arr->Set(i, cpu_obj->Clone());
             i++;
@@ -153,40 +152,39 @@ void per_cpu_times_after(uv_work_t* req) {
         }
 
         Local<Value> argv[argc] = {
-            Local<Value>::New(Null()),
-            Local<Value>::New(per_cpu_arr)
+            NanNull(),
+            NanNew<Value>(per_cpu_arr)
         };
         TryCatch try_catch;
-        baton->callback->Call(Context::GetCurrent()->Global(), argc, argv);
+        baton->callback->Call(argc, argv);
         if (try_catch.HasCaught()) {
             node::FatalException(try_catch);
         }
     }
     //释放
-    baton->callback.Dispose();
+    delete baton->callback;
     delete baton;
     delete req;
 }
 
-Handle<Value>
-nsutil_per_cpu_times_async(const Arguments &args)
+NAN_METHOD(nsutil_per_cpu_times_async)
 {
-    HandleScope scope;
+    NanScope();
     if (args.Length() != 1) {
-        ThrowException(Exception::TypeError(String::New("Wrong number of arguments")));
-        return Undefined();
+        NanThrowTypeError("Wrong number of arguments");
+        NanReturnUndefined();
     }
 
     if (!args[0]->IsFunction()) {
-        ThrowException(Exception::TypeError(String::New("Wrong arguments")));
-        return Undefined();
+        NanThrowTypeError("Wrong arguments");
+        NanReturnUndefined();
     }
 
-    Local<Function> callback = Local<Function>::Cast(args[0]);
+    Local<Function> callback = args[0].As<Function>();
    
     Baton<vector<vector<double>>>* baton = new Baton<vector<vector<double>>>();
     baton->error = false;
-    baton->callback = Persistent<Function>::New(callback);
+    baton->callback = new NanCallback(callback);
         
     uv_work_t *req = new uv_work_t();
     req->data = baton;
@@ -194,7 +192,7 @@ nsutil_per_cpu_times_async(const Arguments &args)
     int status = uv_queue_work(uv_default_loop(), req, per_cpu_times,
                                (uv_after_work_cb)per_cpu_times_after);
     assert(status == 0);
-    return Undefined();
+    NanReturnUndefined();
 
 
 }
@@ -212,17 +210,17 @@ void swap_mem(uv_work_t* req) {
 }
 
 void swap_mem_after(uv_work_t* req) {
-    HandleScope scope;
+    NanScope();
     Baton<uint64_t*>* baton = static_cast<Baton<uint64_t*>*>(req->data);
     if (baton->error) {
-        Local<Value> err = Exception::Error(String::New(baton->error_message.c_str()));
+        Local<Value> err = Exception::Error(NanNew<String>(baton->error_message.c_str()));
 
         const unsigned argc = 1;
         Local<Value> argv[argc] = { err };
 
         TryCatch try_catch;
 
-        baton->callback->Call(Context::GetCurrent()->Global(), argc, argv);
+        baton->callback->Call(argc, argv);
         if (try_catch.HasCaught()) {
             node::FatalException(try_catch);
         }
@@ -230,57 +228,56 @@ void swap_mem_after(uv_work_t* req) {
          
         const unsigned argc = 2;
 
-        Local<Object> swap_obj = Object::New();
+        Local<Object> swap_obj = NanNew<Object>();
     
-        swap_obj->Set(String::NewSymbol("total"),
-                Number::New(baton->result[0]));
-        swap_obj->Set(String::NewSymbol("used"),
-                Number::New(baton->result[1]));
-        swap_obj->Set(String::NewSymbol("free"),
-                Number::New(baton->result[2]));
-        swap_obj->Set(String::NewSymbol("sin"),
-                Number::New(baton->result[3]));
-        swap_obj->Set(String::NewSymbol("sout"),
-                Number::New(baton->result[4]));
+        swap_obj->Set(NanNew("total"),
+                NanNew<Number>(baton->result[0]));
+        swap_obj->Set(NanNew("used"),
+                NanNew<Number>(baton->result[1]));
+        swap_obj->Set(NanNew("free"),
+                NanNew<Number>(baton->result[2]));
+        swap_obj->Set(NanNew("sin"),
+                NanNew<Number>(baton->result[3]));
+        swap_obj->Set(NanNew("sout"),
+                NanNew<Number>(baton->result[4]));
 
 
         Local<Value> argv[argc] = {
-            Local<Value>::New(Null()),
-            Local<Value>::New(swap_obj)
+            NanNull(),
+            NanNew<Value>(swap_obj)
         };
         TryCatch try_catch;
-        baton->callback->Call(Context::GetCurrent()->Global(), argc, argv);
+        baton->callback->Call(argc, argv);
         if (try_catch.HasCaught()) {
             node::FatalException(try_catch);
         }
     }
     //释放
-    baton->callback.Dispose();
+    delete baton->callback;
     delete[] baton->result;
     delete baton;
     delete req;
 }
 
 
-Handle<Value>
-nsutil_swap_mem_async(const Arguments &args)
+NAN_METHOD(nsutil_swap_mem_async)
 {
-    HandleScope scope;
+    NanScope();
     if (args.Length() != 1) {
-        ThrowException(Exception::TypeError(String::New("Wrong number of arguments")));
-        return Undefined();
+        NanThrowTypeError("Wrong number of arguments");
+        NanReturnUndefined();
     }
 
     if (!args[0]->IsFunction()) {
-        ThrowException(Exception::TypeError(String::New("Wrong arguments")));
-        return Undefined();
+        NanThrowTypeError("Wrong arguments");
+        NanReturnUndefined();
     }
 
-    Local<Function> callback = Local<Function>::Cast(args[0]);
+    Local<Function> callback = args[0].As<Function>();
    
     Baton<uint64_t*>* baton = new Baton<uint64_t*>();
     baton->error = false;
-    baton->callback = Persistent<Function>::New(callback);
+    baton->callback = new NanCallback(callback);
         
     uv_work_t *req = new uv_work_t();
     req->data = baton;
@@ -288,7 +285,7 @@ nsutil_swap_mem_async(const Arguments &args)
     int status = uv_queue_work(uv_default_loop(), req, swap_mem,
                                (uv_after_work_cb)swap_mem_after);
     assert(status == 0);
-    return Undefined();
+    NanReturnUndefined();
 }
 
 
