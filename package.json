@@ -20,10 +20,11 @@
     "url": "http://github.com/x6doooo/nsutil/issues"
   },
   "dependencies": {
-    "mocha": "*",
     "nan": "^1.8.4"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "mocha": "*"
+  },
   "license": [
     {
       "type": "BSD",
