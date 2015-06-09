@@ -7,53 +7,53 @@ using namespace std;
 
 NAN_METHOD(nsutil_pid_exists)
 {
-    HandleScope scope;
+    NanScope();
     if (args.Length() == 0) {
-        ThrowException(Exception::TypeError(String::New("Wrong number of arguments")));
-        return scope.Close(Undefined());
+        NanThrowTypeError("Wrong number of arguments");
+        NanReturnValue(NanUndefined());
     }
     if (!args[0]->IsNumber()) {
-        ThrowException(Exception::TypeError(String::New("Wrong arguments")));
-        return scope.Close(Undefined());
+        NanThrowTypeError("Wrong arguments");
+        NanReturnValue(NanUndefined());
     }
     int32_t pid = args[0]->Int32Value();
-    return scope.Close(Boolean::New(sutil_pid_exists(pid)));
+    NanReturnValue(NanNew<Boolean>(sutil_pid_exists(pid)));
 }
 
 NAN_METHOD(nsutil_proc_ioprio_get) 
 {
-    HandleScope scope;
+    NanScope();
     if (args.Length() == 0) {
-        ThrowException(Exception::TypeError(String::New("Wrong number of arguments")));
-        return scope.Close(Undefined());
+        NanThrowTypeError("Wrong number of arguments");
+        NanReturnValue(NanUndefined());
     }
     if (!args[0]->IsNumber()) {
-        ThrowException(Exception::TypeError(String::New("Wrong arguments")));
-        return scope.Close(Undefined());
+        NanThrowTypeError("Wrong arguments");
+        NanReturnValue(NanUndefined());
     }
     int32_t pid = args[0]->Int32Value();
     int *proc_ioprio = new int[2];
     if (sutil_proc_ioprio_get(pid, proc_ioprio) == -1) {
-        return scope.Close(Undefined());
+        NanReturnValue(NanUndefined());
     }
-    Local<Object> obj = Object::New();
-    obj->Set(String::NewSymbol("class"), Integer::New(proc_ioprio[0]));
-    obj->Set(String::NewSymbol("data"), Integer::New(proc_ioprio[1]));
+    Local<Object> obj = NanNew<Object>();
+    obj->Set(NanNew("class"), NanNew<Integer>(proc_ioprio[0]));
+    obj->Set(NanNew("data"), NanNew<Integer>(proc_ioprio[1]));
 
     delete[] proc_ioprio;
-    return scope.Close(obj);
+    NanReturnValue(obj);
 }
 
 NAN_METHOD(nsutil_proc_ioprio_set) 
 {
-    HandleScope scope;
+    NanScope();
     if (args.Length() != 3) {
-        ThrowException(Exception::TypeError(String::New("Wrong number of arguments")));
-        return scope.Close(Undefined());
+        NanThrowTypeError("Wrong number of arguments");
+        NanReturnValue(NanUndefined());
     }
     if (!args[0]->IsNumber() || !args[1]->IsNumber() || !args[2]->IsNumber()) {
-        ThrowException(Exception::TypeError(String::New("Wrong arguments")));
-        return scope.Close(Undefined());
+        NanThrowTypeError("Wrong arguments");
+        NanReturnValue(NanUndefined());
     }
 
     int32_t pid = args[0]->Int32Value();
@@ -61,7 +61,7 @@ NAN_METHOD(nsutil_proc_ioprio_set)
     int io_data = args[2]->IntegerValue();
 
     int re = sutil_proc_ioprio_set(pid, io_class, io_data);
-    return scope.Close(Integer::New(re));
+    NanReturnValue(NanNew<Integer>(re));
 }
 
 #endif
@@ -72,8 +72,8 @@ NAN_METHOD(nsutil_proc_ioprio_set)
 //XXX: TODO: get set
 NAN_METHOD(nsutil_linux_prlimit) 
 {
-    HandleScope scope;
-    return scope.Close(Undefined());
+    NanScope();
+    NanReturnValue(NanUndefined());
 }
 
 #endif
@@ -81,87 +81,87 @@ NAN_METHOD(nsutil_linux_prlimit)
 
 NAN_METHOD(nsutil_disk_partitions)
 {
-    HandleScope scope;
+    NanScope();
 
     vector<vector<string>> devlist;
 
     if (sutil_disk_partitions(devlist) == -1) {
-        return scope.Close(Undefined());
+        NanReturnValue(NanUndefined());
     }
     
-    Local<Array> arr = Array::New(devlist.size());
+    Local<Array> arr = NanNew<Array>(devlist.size());
 
     int i = 0;
-    Local<Object> obj = Object::New();
+    Local<Object> obj = NanNew<Object>();
     for (auto &dev : devlist) {
-        obj->Set(String::NewSymbol("device"),
-                String::New(dev[0].c_str()));
-        obj->Set(String::NewSymbol("mountpoint"),
-                String::New(dev[1].c_str()));
-        obj->Set(String::NewSymbol("fstype"),
-                String::New(dev[2].c_str()));
-        obj->Set(String::NewSymbol("opts"),
-                String::New(dev[3].c_str()));
+        obj->Set(NanNew("device"),
+                NanNew(dev[0].c_str()));
+        obj->Set(NanNew("mountpoint"),
+                NanNew(dev[1].c_str()));
+        obj->Set(NanNew("fstype"),
+                NanNew(dev[2].c_str()));
+        obj->Set(NanNew("opts"),
+                NanNew(dev[3].c_str()));
         arr->Set(i, obj->Clone());
         i++;
     }
 
 
-    return scope.Close(arr);
+    NanReturnValue(arr);
 }
 
 //int
 //sutil_linux_sysinfo(uint64_t* &info)
 NAN_METHOD(nsutil_sysinfo)
 {
-    HandleScope scope;
+    NanScope();
     
     uint64_t* info = new uint64_t[6]; 
 
     if (sutil_linux_sysinfo(info) == -1) {
-        return scope.Close(Undefined());
+        NanReturnValue(NanUndefined());
     }
 
-    Local<Object> obj = Object::New();
+    Local<Object> obj = NanNew<Object>();
 
-    obj->Set(String::NewSymbol("total"), 
-            Number::New(info[0]));
-    obj->Set(String::NewSymbol("free"), 
-            Number::New(info[1]));
-    obj->Set(String::NewSymbol("buffer"), 
-            Number::New(info[2]));
-    obj->Set(String::NewSymbol("shared"), 
-            Number::New(info[3]));
-    obj->Set(String::NewSymbol("swap_total"), 
-            Number::New(info[4]));
-    obj->Set(String::NewSymbol("swap_free"), 
-            Number::New(info[5]));
+    obj->Set(NanNew("total"), 
+            NanNew<Number>(info[0]));
+    obj->Set(NanNew("free"), 
+            NanNew<Number>(info[1]));
+    obj->Set(NanNew("buffer"), 
+            NanNew<Number>(info[2]));
+    obj->Set(NanNew("shared"), 
+            NanNew<Number>(info[3]));
+    obj->Set(NanNew("swap_total"), 
+            NanNew<Number>(info[4]));
+    obj->Set(NanNew("swap_free"), 
+            NanNew<Number>(info[5]));
 
     delete[] info;
-    return scope.Close(obj);
+    NanReturnValue(obj);
 }
 
 //int
 //sutil_proc_cpu_affinity_get(const int32_t pid, uint32_t &mask)
 NAN_METHOD(nsutil_proc_cpu_affinity_get)
 {
-    HandleScope scope;
+    NanScope();
     if (args.Length() == 0) {
-        ThrowException(Exception::TypeError(String::New("Wrong number of arguments")));
-        return scope.Close(Undefined());
+        NanThrowTypeError("Wrong number of arguments");
+        NanReturnValue(NanUndefined());
     }
     if (!args[0]->IsNumber()) {
-        ThrowException(Exception::TypeError(String::New("Wrong arguments")));
-        return scope.Close(Undefined());
+        NanThrowTypeError("Wrong arguments");
+        NanReturnValue(NanUndefined());
     }
     int32_t pid = args[0]->Int32Value();
     uint32_t mask;
     
     if (sutil_proc_cpu_affinity_get(pid, mask) == -1) {
-        return scope.Close(Undefined());
+        NanReturnValue(NanUndefined());
     }
 
-    return scope.Close(Number::New(mask));
+    NanReturnValue(NanNew<Number>(mask));
 }
 
 //XXX
@@ -170,15 +170,15 @@ NAN_METHOD(nsutil_proc_cpu_affinity_get)
 /*
 NAN_METHOD(nsutil_proc_cpu_affinity_set) 
 {
-    HandleScope scope;
+    NanScope(;
 
     if (args.Length() != 2) {
-        ThrowException(Exception::TypeError(String::New("Wrong number of arguments")));
-        return scope.Close(Undefined());
+        NanThrowTypeError("Wrong number of arguments");
+        NanReturnValue(NanUndefined());
     }
     if (!args[0]->IsNumber() || !args[1]->IsArray()) {
-        ThrowException(Exception::TypeError(String::New("Wrong arguments")));
-        return scope.Close(Undefined());
+        NanThrowTypeError("Wrong arguments");
+        NanReturnValue(NanUndefined());
     }
 
     int32_t pid = args[0]->Int32Value();
@@ -186,7 +186,7 @@ NAN_METHOD(nsutil_proc_cpu_affinity_set)
 
     //TODO
 
-    return scope.Close(Undefined());
+    NanReturnValue(NanUndefined());
 
 }
 */
@@ -198,29 +198,29 @@ NAN_METHOD(nsutil_proc_cpu_affinity_set)
 //sutil_users(vector<sutil_user_info> &user_list)
 NAN_METHOD(nsutil_users)
 {
-    HandleScope scope;
+    NanScope();
 
     vector<sutil_user_info> user_list;
 
     if (sutil_users(user_list) == -1) {
-        return scope.Close(Undefined());
+        NanReturnValue(NanUndefined());
     }
     
-    Local<Array> arr = Array::New(user_list.size());
-    Local<Object> obj = Object::New();
+    Local<Array> arr = NanNew<Array>(user_list.size());
+    Local<Object> obj = NanNew<Object>();
 
     int i = 0;
     for (auto &u : user_list) {
-        obj->Set(String::NewSymbol("username"), String::New(u.username.c_str()));
-        obj->Set(String::NewSymbol("tty"), String::New(u.tty.c_str()));
-        obj->Set(String::NewSymbol("host"), String::New(u.host.c_str()));
-        obj->Set(String::NewSymbol("start_time"), Number::New(u.start_time));
-        obj->Set(String::NewSymbol("user_proc"), Boolean::New(u.user_proc));
+        obj->Set(NanNew("username"), NanNew(u.username.c_str()));
+        obj->Set(NanNew("tty"), NanNew(u.tty.c_str()));
+        obj->Set(NanNew("host"), NanNew(u.host.c_str()));
+        obj->Set(NanNew("start_time"), NanNew<Number>(u.start_time));
+        obj->Set(NanNew("user_proc"), NanNew<Boolean>(u.user_proc));
         arr->Set(i, obj->Clone());
         i++;
     }
 
-    return scope.Close(arr);
+    NanReturnValue(arr);
 }
 
 
@@ -228,20 +228,20 @@ NAN_METHOD(nsutil_users)
 // sysconf
 NAN_METHOD(nsutil_sysconf) 
 {
-    HandleScope scope;
+    NanScope();
     if (args.Length() == 0) {
-        ThrowException(Exception::TypeError(String::New("Wrong number of arguments")));
-        return scope.Close(Undefined());
+        NanThrowTypeError("Wrong number of arguments");
+        NanReturnValue(NanUndefined());
     }
     if (!args[0]->IsString()) {
-        ThrowException(Exception::TypeError(String::New("Wrong arguments")));
-        return scope.Close(Undefined());
+        NanThrowTypeError("Wrong arguments");
+        NanReturnValue(NanUndefined());
     }
     String::Utf8Value str(args[0]->ToString());
     string which = *str;
     
     int ret = sutil_sysconf(which);
-    return scope.Close(Number::New(ret));
+    NanReturnValue(NanNew<Number>(ret));
 }
 
 
