@@ -26,7 +26,13 @@
                     "cflags_cc": ["-std=c++11"],
                     "include_dirs": [
                         "<!(node -e \"require('nan')\")"
-                    ]
+                    ],
+                    'xcode_settings': {
+                        'OTHER_CPLUSPLUSFLAGS' : ['-std=c++11'],
+                        'OTHER_LDFLAGS': [
+                            '-framework CoreFoundation -framework IOKit'
+                        ]
+                    }
                 },
                 {
                     "target_name": "nsutil_posix_osx",
@@ -38,15 +44,15 @@
                     "cflags_cc": ["-std=c++11"],
                     "include_dirs": [
                         "<!(node -e \"require('nan')\")"
-                    ]
+                    ],
+                    'xcode_settings': {
+                      'OTHER_CPLUSPLUSFLAGS' : ['-std=c++11'],
+                      'OTHER_LDFLAGS': [
+                        '-framework CoreFoundation -framework IOKit'
+                        ]
+                    }
                 }
-            ],
-            'xcode_settings': {
-                'OTHER_CPLUSPLUSFLAGS' : ['-std=c++11'],
-                'OTHER_LDFLAGS': [
-                    '-framework CoreFoundation -framework IOKit'
-                ]
-            }
+            ]
         }],
         [ "OS=='linux'", {
             "targets": [
